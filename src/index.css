@@ -1,0 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+/* ── Tailwind v4: register design tokens as utility-friendly colors ── */
+@theme {
+  --color-bg:           #ffffff;
+  --color-bg-2:         #FCFCFC;
+  --color-bg-3:         #f0f0f0;
+  --color-border:       #e5e5e5;
+  --color-border-2:     #d4d4d4;
+
+  --color-c-text:       #111111;
+  --color-c-text-2:     #555555;
+  --color-c-text-3:     #999999;
+
+  --color-c-green:        #16a34a;
+  --color-green-bg:       #f0fdf4;
+  --color-green-border:   #bbf7d0;
+  --color-c-amber:        #d97706;
+  --color-amber-bg:       #fffbeb;
+  --color-amber-border:   #fde68a;
+  --color-c-red:          #dc2626;
+  --color-red-bg:         #fef2f2;
+  --color-red-border:     #fecaca;
+  --color-c-gold:         #b45309;
+  --color-gold-bg:        #fef3c7;
+  --color-gold-border:    #fcd34d;
+}
+
+/* ── Non-color tokens (keep as CSS vars, used with var() in JSX) ── */
+:root {
+  --font-sans:  'Inter', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', serif;
+
+  --r-xs:  4px;
+  --r-sm:  8px;
+  --r-md:  10px;
+  --r-lg:  14px;
+  --r-xl:  18px;
+  --r-2xl: 24px;
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: #ffffff;
+  color: #111111;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#root { min-height: 100svh; display: flex; flex-direction: column; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 10px; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.35; transform: scale(0.6); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.animate-fade-up { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-fade-in { animation: fadeIn 0.3s ease forwards; }
+.delay-1 { animation-delay: 0.06s; opacity: 0; }
+.delay-2 { animation-delay: 0.12s; opacity: 0; }
+.delay-3 { animation-delay: 0.18s; opacity: 0; }
+.delay-4 { animation-delay: 0.24s; opacity: 0; }
+
+.font-serif { font-family: var(--font-serif) !important; }
+
+/* Label */
+.label {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #999999;
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #111111; color: #fff;
+  padding: 10px 20px;
+  font-family: var(--font-sans); font-weight: 500; font-size: 14px; letter-spacing: -0.01em;
+  border: none; border-radius: var(--r-md); cursor: pointer;
+  transition: all 0.15s ease; text-decoration: none; white-space: nowrap;
+}
+.btn-primary:hover { background: #333; box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #ffffff; color: #111111;
+  padding: 9px 20px;
+  font-family: var(--font-sans); font-weight: 500; font-size: 14px; letter-spacing: -0.01em;
+  border: 1px solid #d4d4d4; border-radius: var(--r-md); cursor: pointer;
+  transition: all 0.15s ease; text-decoration: none;
+}
+.btn-outline:hover { background: #f8f8f8; border-color: #111111; }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; color: #555555;
+  padding: 7px 12px;
+  font-family: var(--font-sans); font-weight: 500; font-size: 13px;
+  border: none; border-radius: var(--r-sm); cursor: pointer;
+  transition: all 0.15s; text-decoration: none;
+}
+.btn-ghost:hover { background: #f8f8f8; color: #111111; }
+
+/* Card */
+.card {
+  background: #ffffff; border: 1px solid #e5e5e5;
+  border-radius: var(--r-lg); padding: 24px;
+  transition: all 0.2s ease;
+}
+.card:hover { box-shadow: var(--shadow-md); border-color: #d4d4d4; }
+
+/* Input */
+.input-field {
+  width: 100%; border: 1px solid #d4d4d4; padding: 10px 14px;
+  font-family: var(--font-sans); font-size: 14px;
+  background: #ffffff; color: #111111; outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s; border-radius: var(--r-md);
+}
+.input-field:focus { border-color: #111111; box-shadow: 0 0 0 3px rgba(17,17,17,0.08); }
+.input-field::placeholder { color: #999999; }
+
+/* Badges */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-sans); font-size: 10.5px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 99px; font-weight: 600;
+}
+.badge-waiting { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.badge-serving { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.badge-done    { background: #f8f8f8; color: #999999; border: 1px solid #e5e5e5; }
+.badge-skipped { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+.badge-eta {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-sans); font-size: 10.5px; font-weight: 500;
+  padding: 3px 8px; border-radius: 99px;
+  background: #fef3c7; color: #b45309; border: 1px solid #fcd34d;
+}
+
+.live-dot {
+  width: 6px; height: 6px; background: #22c55e; border-radius: 50%;
+  animation: pulse-dot 1.4s ease-in-out infinite;
+  display: inline-block; flex-shrink: 0;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f8f8f8 25%, #f0f0f0 50%, #f8f8f8 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--r-sm);
+}
+
+.divider {
+  width: 32px; height: 2px; background: #111111;
+  border-radius: 99px; margin: 0 auto;
+}
