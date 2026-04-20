@@ -167,7 +167,7 @@ export default function Home() {
                 <div className="text-3xl md:text-4xl mb-3 md:mb-4">{sv.icon}</div>
                 <h3 className="font-serif text-[15px] md:text-[17px] text-c-text m-0 mb-2 leading-tight">{sv.name}</h3>
                 <p className="text-[14px] md:text-[15px] font-semibold text-c-text m-0 mb-1">{sv.price?.toLocaleString?.("vi-VN") ?? sv.price}đ</p>
-                <p className="text-[11px] md:text-[12px] text-c-text-3 m-0">⏱ {sv.duration ?? sv.time}</p>
+                <p className="text-[11px] md:text-[12px] text-c-text-3 m-0">⏱ {sv.duration ?? sv.time} phút</p>
               </div>
             ))}
           </div>

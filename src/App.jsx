@@ -13,6 +13,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import History from "./pages/admin/History";
 import Settings from "./pages/admin/Settings";
+import ScrollToTop from "./components/ScrollToTop";
 
 function PublicLayout() {
   const { pathname } = useLocation();
@@ -40,6 +41,7 @@ function PublicLayout() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* ── Admin (không có Navbar/Footer) ── */}
         <Route path="/admin/login" element={<Login />} />

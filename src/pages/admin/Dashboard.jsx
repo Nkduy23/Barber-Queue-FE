@@ -6,13 +6,13 @@ import { formatTime, formatScheduledTime } from "../../utils/timeHelper";
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Dashboard() {
-  const { queue, loading } = useQueue();
+  const [viewDate, setViewDate] = useState(() => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }));
+
+  const { queue, loading } = useQueue(viewDate);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  const [selectedBarberId, setSelectedBarberId] = useState(() =>
-    localStorage.getItem("barber_id") ? Number(localStorage.getItem("barber_id")) : null
-  );
+  const [selectedBarberId, setSelectedBarberId] = useState(() => (localStorage.getItem("barber_id") ? Number(localStorage.getItem("barber_id")) : null));
 
   const { barbers, refetchBarbers } = useBarbers(token);
   const { services } = useServices();
@@ -21,6 +21,8 @@ export default function Dashboard() {
   const [walkInName, setWalkInName] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const isToday = viewDate === new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
 
   useEffect(() => {
     if (!token) navigate("/admin/login");
@@ -100,9 +102,7 @@ export default function Dashboard() {
     refetchBarbers();
   };
 
-  const myServing = selectedBarberId
-    ? queue.find((q) => q.status === "serving" && q.barber_id === selectedBarberId)
-    : queue.find((q) => q.status === "serving");
+  const myServing = selectedBarberId ? queue.find((q) => q.status === "serving" && q.barber_id === selectedBarberId) : queue.find((q) => q.status === "serving");
 
   const waiting = queue.filter((q) => q.status === "waiting");
   const allServing = queue.filter((q) => q.status === "serving");
@@ -121,49 +121,108 @@ export default function Dashboard() {
 
       {/* ── Barber selector ── */}
       <div className="bg-white border border-border rounded-[var(--r-xl)] p-4 md:p-6 mb-4 md:mb-6">
-        <div className="flex items-center justify-between mb-3 md:mb-4 flex-wrap gap-2">
-          <div>
-            <p className="label mb-0.5">Bạn là ai?</p>
-            <p className="text-[12px] md:text-[13px] text-c-text-2 m-0">Chọn tên để gán khách đúng thợ</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {barbers.map((b) => (
-            <div key={b.id} className="flex items-center gap-1.5">
-              <button
-                onClick={() => {
-                  setSelectedBarberId(b.id);
-                  localStorage.setItem("barber_id", b.id);
-                }}
-                className={`px-3 py-1.5 md:px-4 md:py-2 rounded-[var(--r-md)] text-[12px] md:text-[13px] font-medium border transition-all cursor-pointer
-                  ${selectedBarberId === b.id
-                    ? "bg-c-text text-white border-c-text"
-                    : b.is_active
-                      ? "bg-white text-c-text border-border hover:border-border-2"
-                      : "bg-bg-2 text-c-text-3 border-border opacity-60"
-                  }`}
-              >
-                {b.name}
-                {selectedBarberId === b.id && " ✓"}
-                {!b.is_active && " (nghỉ)"}
-              </button>
-              <button
-                onClick={() => handleToggleBarber(b.id)}
-                title={b.is_active ? "Đánh dấu nghỉ" : "Đánh dấu đi làm"}
-                className={`text-[10px] md:text-[11px] px-2 py-1 rounded border cursor-pointer transition-all bg-transparent
-                  ${b.is_active
-                    ? "border-green-border text-c-green hover:bg-red-bg hover:text-c-red hover:border-red-border"
-                    : "border-red-border text-c-red hover:bg-green-bg hover:text-c-green hover:border-green-border"
-                  }`}
-              >
-                {b.is_active ? "Làm" : "Nghỉ"}
-              </button>
+        <div className="flex items-start justify-between gap-4">
+          {/* Trái: label + barber buttons */}
+          <div className="flex-1 min-w-0">
+            <div className="mb-3 md:mb-4">
+              <p className="label mb-0.5">Bạn là ai?</p>
+              <p className="text-[12px] md:text-[13px] text-c-text-2 m-0">Chọn tên để gán khách đúng thợ</p>
             </div>
-          ))}
-          <button onClick={() => setShowWalkIn(true)} className="btn-outline text-[11px] md:text-[12px] py-1.5 px-3">
+            <div className="flex flex-wrap gap-2">
+              {barbers.map((b) => (
+                <div key={b.id} className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => {
+                      if (!b.is_active) return; // guard thêm
+                      setSelectedBarberId(b.id);
+                      localStorage.setItem("barber_id", b.id);
+                    }}
+                    disabled={!b.is_active}
+                    className={`px-3 py-1.5 md:px-4 md:py-2 rounded-[var(--r-md)] text-[12px] md:text-[13px] font-medium border transition-all
+    ${
+      !b.is_active
+        ? "bg-bg-2 text-c-text-3 border-border opacity-50 cursor-not-allowed"
+        : selectedBarberId === b.id
+          ? "bg-c-text text-white border-c-text cursor-pointer"
+          : "bg-white text-c-text border-border hover:border-border-2 cursor-pointer"
+    }`}
+                  >
+                    {b.name}
+                    {selectedBarberId === b.id && b.is_active && " ✓"}
+                    {!b.is_active && " (nghỉ)"}
+                  </button>
+                  <button
+                    onClick={() => handleToggleBarber(b.id)}
+                    title={b.is_active ? "Đánh dấu nghỉ" : "Đánh dấu đi làm"}
+                    className={`text-[10px] md:text-[11px] px-2 py-1 rounded border cursor-pointer transition-all bg-transparent
+              ${
+                b.is_active
+                  ? "border-green-border text-c-green hover:bg-red-bg hover:text-c-red hover:border-red-border"
+                  : "border-red-border text-c-red hover:bg-green-bg hover:text-c-green hover:border-green-border"
+              }`}
+                  >
+                    {b.is_active ? "Làm" : "Nghỉ"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Phải: nút Vãng lai */}
+          <button onClick={() => setShowWalkIn(true)} className="btn-outline text-[11px] md:text-[12px] py-1.5 px-3 flex-shrink-0">
             + Vãng lai
           </button>
         </div>
+      </div>
+
+      {/* ── Date selector ── */}
+      <div className="bg-white border border-border rounded-[var(--r-xl)] px-4 md:px-6 py-3 md:py-4 mb-4 md:mb-6">
+        {/* Row: arrows + input + badge (badge ẩn trên mobile) */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const d = new Date(viewDate);
+              d.setDate(d.getDate() - 1);
+              setViewDate(d.toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }));
+            }}
+            className="btn-outline py-1.5 px-3 text-[13px] flex-shrink-0"
+            title="Hôm trước"
+          >
+            ←
+          </button>
+
+          <input type="date" value={viewDate} onChange={(e) => setViewDate(e.target.value)} className="input-field py-1.5 text-[13px] flex-1 min-w-0" />
+
+          <button
+            onClick={() => {
+              const d = new Date(viewDate);
+              d.setDate(d.getDate() + 1);
+              setViewDate(d.toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }));
+            }}
+            className="btn-outline py-1.5 px-3 text-[13px] flex-shrink-0"
+            title="Hôm sau"
+          >
+            →
+          </button>
+
+          {/* Badge chỉ hiện trên desktop */}
+          <span className="hidden md:inline-flex text-[12px] text-c-text-3 bg-bg-2 border border-border px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+            {isToday ? "📅 Hôm nay" : "📅 " + new Date(viewDate + "T00:00:00").toLocaleDateString("vi-VN", { weekday: "short", day: "2-digit", month: "2-digit" })}
+          </span>
+        </div>
+
+        {/* Dòng phụ: chỉ hiện khi không phải hôm nay */}
+        {!isToday && (
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-[11px] text-c-text-3">📅 {new Date(viewDate + "T00:00:00").toLocaleDateString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+            <button
+              onClick={() => setViewDate(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }))}
+              className="text-[11px] text-c-text-2 hover:text-c-text underline transition-colors"
+            >
+              Về hôm nay
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Stats ── */}
@@ -184,86 +243,90 @@ export default function Dashboard() {
       {/* ── Main grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-4 md:gap-5">
         {/* ── Left: Action panel ── */}
-        <div className="flex flex-col gap-4">
-          {/* Current serving */}
-          <div className="bg-white border border-border rounded-[var(--r-xl)] p-4 md:p-6">
-            <p className="label mb-3 md:mb-4">Đang phục vụ</p>
-            {myServing ? (
-              <>
-                <div className="bg-green-bg border border-green-border rounded-[var(--r-lg)] px-4 py-3 mb-3 md:mb-4">
-                  <p className="text-[11px] text-c-text-3 m-0 mb-1">{myServing.barber_name || "Thợ"}</p>
-                  <p className="font-serif text-[22px] md:text-[26px] text-c-green m-0 leading-tight">{myServing.name}</p>
-                  <p className="text-[11px] text-c-text-3 m-0 mt-1">
-                    {myServing.phone}
-                    {myServing.scheduled_time && ` · Hẹn ${formatScheduledTime(myServing.scheduled_time)}`}
-                  </p>
-                  {myServing.services?.length > 0 && (
-                    <p className="text-[11px] text-c-text-2 m-0 mt-1">{myServing.services.map((s) => s.name).join(" · ")}</p>
-                  )}
-                </div>
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => handleDone(myServing.id, myServing.name)}
-                    disabled={actionLoading}
-                    className="w-full py-3 rounded-[var(--r-md)] font-semibold text-[14px] text-white bg-c-green border-none hover:opacity-90 transition-opacity cursor-pointer"
-                  >
-                    ✓ Xong — Next khách
-                  </button>
-                  <button
-                    onClick={() => handleSkip(myServing.id, myServing.name)}
-                    disabled={actionLoading}
-                    className="btn-outline w-full justify-center py-2.5 text-c-red border-red-border hover:bg-red-bg"
-                  >
-                    ⏭ Skip khách này
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div>
-                <p className="text-[13px] text-c-text-3 mb-4">
-                  {selectedBarberId ? "Bạn chưa nhận khách nào" : "Chưa có ai đang phục vụ"}
-                </p>
-                {waiting.length > 0 && (
-                  <button
-                    onClick={() => handleStart(waiting[0].id, waiting[0].name)}
-                    disabled={actionLoading || !selectedBarberId}
-                    className="btn-primary w-full justify-center py-3"
-                    style={{ opacity: !selectedBarberId ? 0.45 : 1 }}
-                  >
-                    ▶ Nhận: {waiting[0]?.name}
-                  </button>
-                )}
-                {!selectedBarberId && (
-                  <p className="text-[11px] text-c-text-3 mt-2 text-center">↑ Chọn tên bạn ở trên trước</p>
-                )}
-              </div>
-            )}
-          </div>
 
-          {/* Quick stats - hidden on mobile, shown on desktop */}
-          <div className="hidden md:block bg-white border border-border rounded-[var(--r-xl)] px-6 py-5">
-            <p className="label mb-4">Thông tin nhanh</p>
-            {[
-              ["Khách đang chờ", `${waiting.length} người`],
-              ["Chờ tối đa", waiting.length === 0 ? "—" : `~${waiting.length * 25} phút`],
-              ["Tiếp theo", waiting[0]?.name ?? "—"],
-              ["Thợ đang làm", `${barbers.filter((b) => b.is_active).length} / ${barbers.length}`],
-            ].map(([k, v]) => (
-              <div key={k} className="flex justify-between items-center py-2.5 border-b border-border last:border-0">
-                <span className="text-[13px] text-c-text-2">{k}</span>
-                <span className="text-[13px] font-semibold text-c-text">{v}</span>
-              </div>
-            ))}
+        {isToday ? (
+          <div className="flex flex-col gap-4">
+            {/* Current serving */}
+            <div className="bg-white border border-border rounded-[var(--r-xl)] p-4 md:p-6">
+              <p className="label mb-3 md:mb-4">Đang phục vụ</p>
+              {myServing ? (
+                <>
+                  <div className="bg-green-bg border border-green-border rounded-[var(--r-lg)] px-4 py-3 mb-3 md:mb-4">
+                    <p className="text-[11px] text-c-text-3 m-0 mb-1">{myServing.barber_name || "Thợ"}</p>
+                    <p className="font-serif text-[22px] md:text-[26px] text-c-green m-0 leading-tight">{myServing.name}</p>
+                    <p className="text-[11px] text-c-text-3 m-0 mt-1">
+                      {myServing.phone}
+                      {myServing.scheduled_time && ` · Hẹn ${formatScheduledTime(myServing.scheduled_time)}`}
+                    </p>
+                    {myServing.services?.length > 0 && <p className="text-[11px] text-c-text-2 m-0 mt-1">{myServing.services.map((s) => s.name).join(" · ")}</p>}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => handleDone(myServing.id, myServing.name)}
+                      disabled={actionLoading}
+                      className="w-full py-3 rounded-[var(--r-md)] font-semibold text-[14px] text-white bg-c-green border-none hover:opacity-90 transition-opacity cursor-pointer"
+                    >
+                      ✓ Xong — Next khách
+                    </button>
+                    <button
+                      onClick={() => handleSkip(myServing.id, myServing.name)}
+                      disabled={actionLoading}
+                      className="btn-outline w-full justify-center py-2.5 text-c-red border-red-border hover:bg-red-bg"
+                    >
+                      ⏭ Skip khách này
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <p className="text-[13px] text-c-text-3 mb-4">{selectedBarberId ? "Bạn chưa nhận khách nào" : "Chưa có ai đang phục vụ"}</p>
+
+                  {/* Luôn render nút, chỉ disabled + opacity thay đổi — tránh layout shift */}
+                  <button
+                    onClick={() => waiting.length > 0 && handleStart(waiting[0].id, waiting[0].name)}
+                    disabled={actionLoading || !selectedBarberId || waiting.length === 0}
+                    className="btn-primary w-full justify-center py-3 transition-opacity"
+                    style={{ opacity: !selectedBarberId || waiting.length === 0 ? 0.4 : 1 }}
+                  >
+                    {waiting.length > 0 ? `▶ Nhận: ${waiting[0].name}` : "▶ Chưa có khách chờ"}
+                  </button>
+
+                  {!selectedBarberId && <p className="text-[11px] text-c-text-3 mt-2 text-center">↑ Chọn tên bạn ở trên trước</p>}
+                </div>
+              )}
+            </div>
+
+            {/* Quick stats - hidden on mobile, shown on desktop */}
+            <div className="hidden md:block bg-white border border-border rounded-[var(--r-xl)] px-6 py-5">
+              <p className="label mb-4">Thông tin nhanh</p>
+              {[
+                ["Khách đang chờ", `${waiting.length} người`],
+                ["Chờ tối đa", waiting.length === 0 ? "—" : `~${waiting.length * 25} phút`],
+                ["Tiếp theo", waiting[0]?.name ?? "—"],
+                ["Thợ đang làm", `${barbers.filter((b) => b.is_active).length} / ${barbers.length}`],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between items-center py-2.5 border-b border-border last:border-0">
+                  <span className="text-[13px] text-c-text-2">{k}</span>
+                  <span className="text-[13px] font-semibold text-c-text">{v}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white border border-border rounded-[var(--r-xl)] p-6 flex items-center justify-center">
+            <p className="text-[13px] text-c-text-3 text-center">
+              📅 Đang xem lịch ngày <strong>{new Date(viewDate + "T00:00:00").toLocaleDateString("vi-VN")}</strong>
+              <br />
+              <span className="text-[12px]">Chỉ có thể thao tác hàng chờ của hôm nay</span>
+            </p>
+          </div>
+        )}
 
         {/* ── Right: Queue list ── */}
         <div className="bg-white border border-border rounded-[var(--r-xl)] overflow-hidden">
           <div className="px-4 md:px-7 py-4 md:py-5 border-b border-border flex justify-between items-center">
             <p className="label m-0">Hàng chờ</p>
-            <span className="text-[11px] md:text-[12px] text-c-text-3 bg-bg-2 border border-border px-2.5 py-0.5 rounded-full">
-              {waiting.length} người
-            </span>
+            <span className="text-[11px] md:text-[12px] text-c-text-3 bg-bg-2 border border-border px-2.5 py-0.5 rounded-full">{waiting.length} người</span>
           </div>
 
           <div className="max-h-[60vh] md:max-h-[500px] overflow-y-auto">
@@ -273,27 +336,16 @@ export default function Dashboard() {
               <div className="py-12 text-center text-c-text-3 text-[13px]">Hàng chờ trống</div>
             ) : (
               waiting.map((entry, i) => (
-                <div
-                  key={entry.id}
-                  className="flex items-center gap-3 md:gap-4 px-4 md:px-7 py-3 md:py-4 border-b border-border hover:bg-bg-2 transition-colors"
-                >
-                  <span className="text-[13px] font-semibold text-c-text-3 w-6 md:w-7 flex-shrink-0 tabular-nums">
-                    {String(entry.display_position ?? i + 1).padStart(2, "0")}
-                  </span>
+                <div key={entry.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-7 py-3 md:py-4 border-b border-border hover:bg-bg-2 transition-colors">
+                  <span className="text-[13px] font-semibold text-c-text-3 w-6 md:w-7 flex-shrink-0 tabular-nums">{String(entry.display_position ?? i + 1).padStart(2, "0")}</span>
                   <div className="flex-1 min-w-0">
                     <p className="m-0 text-[13px] md:text-[14px] font-semibold text-c-text truncate">{entry.name}</p>
                     <p className="m-0 text-[10px] md:text-[11px] text-c-text-3 truncate">
                       {entry.phone}
                       {entry.scheduled_time && ` · ${formatScheduledTime(entry.scheduled_time)}`}
                     </p>
-                    {entry.services?.length > 0 && (
-                      <p className="m-0 text-[10px] text-c-text-3 mt-0.5 truncate">
-                        {entry.services.map((s) => s.name).join(" · ")}
-                      </p>
-                    )}
-                    {entry.note && (
-                      <p className="m-0 text-[10px] text-c-amber mt-0.5 truncate">📝 {entry.note}</p>
-                    )}
+                    {entry.services?.length > 0 && <p className="m-0 text-[10px] text-c-text-3 mt-0.5 truncate">{entry.services.map((s) => s.name).join(" · ")}</p>}
+                    {entry.note && <p className="m-0 text-[10px] text-c-amber mt-0.5 truncate">📝 {entry.note}</p>}
                   </div>
                   <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
                     <button
@@ -329,9 +381,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="live-dot flex-shrink-0" />
                     <span className="text-[12px] md:text-[13px] font-semibold text-c-green truncate">{s.name}</span>
-                    <span className="text-[10px] md:text-[11px] text-c-text-3 flex-shrink-0">
-                      {s.barber_name ? `· ${s.barber_name}` : ""}
-                    </span>
+                    <span className="text-[10px] md:text-[11px] text-c-text-3 flex-shrink-0">{s.barber_name ? `· ${s.barber_name}` : ""}</span>
                   </div>
                   <span className="text-[10px] md:text-[11px] text-c-text-3 flex-shrink-0">{formatTime(s.start_time)}</span>
                 </div>
@@ -355,22 +405,12 @@ export default function Dashboard() {
             </div>
 
             <div className="mb-4">
-              <label className="text-[11px] font-semibold text-c-text-3 uppercase tracking-wide block mb-1.5">
-                Tên khách (tuỳ chọn)
-              </label>
-              <input
-                type="text"
-                placeholder="Khách vãng lai"
-                value={walkInName}
-                onChange={(e) => setWalkInName(e.target.value)}
-                className="input-field"
-              />
+              <label className="text-[11px] font-semibold text-c-text-3 uppercase tracking-wide block mb-1.5">Tên khách (tuỳ chọn)</label>
+              <input type="text" placeholder="Khách vãng lai" value={walkInName} onChange={(e) => setWalkInName(e.target.value)} className="input-field" />
             </div>
 
             <div className="mb-5">
-              <label className="text-[11px] font-semibold text-c-text-3 uppercase tracking-wide block mb-2">
-                Dịch vụ (tuỳ chọn)
-              </label>
+              <label className="text-[11px] font-semibold text-c-text-3 uppercase tracking-wide block mb-2">Dịch vụ (tuỳ chọn)</label>
               <div className="flex flex-col gap-1.5 max-h-52 overflow-y-auto">
                 {services.map((svc) => {
                   const sel = walkInServiceIds.includes(svc.id);
@@ -378,9 +418,7 @@ export default function Dashboard() {
                     <button
                       key={svc.id}
                       type="button"
-                      onClick={() =>
-                        setWalkInServiceIds((prev) => (sel ? prev.filter((x) => x !== svc.id) : [...prev, svc.id]))
-                      }
+                      onClick={() => setWalkInServiceIds((prev) => (sel ? prev.filter((x) => x !== svc.id) : [...prev, svc.id]))}
                       className={`flex justify-between items-center px-3 py-2.5 rounded-[var(--r-md)] border text-left cursor-pointer transition-all
                         ${sel ? "bg-c-text text-white border-c-text" : "bg-white border-border hover:bg-bg-2"}`}
                     >
@@ -394,11 +432,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <button
-              onClick={handleWalkIn}
-              disabled={actionLoading}
-              className="btn-primary w-full justify-center py-3"
-            >
+            <button onClick={handleWalkIn} disabled={actionLoading} className="btn-primary w-full justify-center py-3">
               {actionLoading ? "Đang xử lý..." : "✂ Bắt đầu phục vụ ngay"}
             </button>
           </div>

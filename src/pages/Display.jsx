@@ -100,7 +100,7 @@ export default function Display() {
       <div className="flex justify-between items-center px-4 md:px-10 py-3 md:py-5 bg-white border-b border-border">
         <Link to="/" className="flex items-center gap-2 no-underline hover:opacity-70 transition-opacity min-w-0">
           <span className="font-serif text-[15px] md:text-[20px] text-c-text truncate">Baw Men's Hair</span>
-          <span className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden flex-shrink-0">
+          <span className="w-15 h-15 md:w-30 md:h-30 rounded-full overflow-hidden flex-shrink-0">
             <img src={logo} alt="Logo" className="w-full h-full object-contain" />
           </span>
         </Link>

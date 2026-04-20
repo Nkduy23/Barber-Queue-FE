@@ -4,10 +4,10 @@ import logo from "../assets/minhbao-removebg-preview.png";
 export default function Footer() {
   return (
     <footer className="bg-bg-2 border-t border-border mt-auto">
-      <div className="max-w-6xl mx-auto px-5 md:px-8 pt-10 md:pt-14 pb-8 md:pb-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16">
+      <div className="max-w-6xl mx-auto px-5 md:px-8 pt-10 md:pt-14 pb-8 md:pb-10 grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-16">
         {/* Brand */}
-        <div>
-          <div className="flex items-center gap-2 mb-3 md:mb-4">
+        <div className="col-span-2 md:col-span-1">
+          <div className="flex items-center gap-2 mb-3 md:mb-4 ">
             <span className="font-serif text-[18px] md:text-[22px] text-c-text">Baw Men's Hair Designer</span>
             <span className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
               <img src={logo} alt="Logo shop" className="w-full h-full object-contain" />

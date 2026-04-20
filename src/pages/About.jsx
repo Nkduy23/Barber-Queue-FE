@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
+import minhbao from "../assets/minhbao.jpg";
+import phuchau from "../assets/phuchau.jpg";
+import khanhduy from "../assets/khanhduy.jpg";
 
 const TEAM = [
-  { name: "Minh Bảo", role: "Master Barber · 8 năm", img: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=400&q=80" },
-  { name: "Phúc Hậu", role: "Senior Barber · 5 năm", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
-  { name: "Khánh Duy", role: "Barber · 3 năm", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" },
+  { name: "Minh Bảo", role: "Master Barber · 8 năm", img: minhbao },
+  { name: "Phúc Hậu", role: "Senior Barber · 5 năm", img: phuchau },
+  { name: "Khánh Duy", role: "Barber · 3 năm", img: khanhduy },
 ];
 
 const VALUES = [

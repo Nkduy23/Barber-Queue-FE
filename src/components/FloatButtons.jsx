@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import zalo from "../assets/zalo.png";
+import messenger from "../assets/messenger.png";
 
-const ZALO_NUMBER = "0815934934"; // Số Zalo
+const ZALO_NUMBER = "0815934934";
+const MESSENGER_URL = "https://www.facebook.com/baocuteisme?locale=vi_VN"; // đổi username nếu cần
 
 export default function FloatButtons() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { pathname } = useLocation();
 
-  // Không hiện ở display
   if (pathname === "/display") return null;
 
   useEffect(() => {
@@ -22,13 +24,13 @@ export default function FloatButtons() {
     <div className="float-buttons">
       {/* Zalo */}
       <a href={`https://zalo.me/${ZALO_NUMBER}`} target="_blank" rel="noopener noreferrer" className="float-btn float-zalo" title="Liên hệ Zalo" aria-label="Liên hệ qua Zalo">
-        {/* Zalo icon SVG */}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <rect width="24" height="24" rx="6" fill="#0068FF" />
-          <text x="12" y="16.5" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold" fontFamily="Arial, sans-serif">
-            ZALO
-          </text>
-        </svg>
+        <img src={zalo} alt="Zalo" className="w-full h-full object-contain" />
+        <span className="float-btn-pulse" />
+      </a>
+
+      {/* Messenger */}
+      <a href={MESSENGER_URL} target="_blank" rel="noopener noreferrer" className="float-btn float-messenger" title="Liên hệ Messenger" aria-label="Liên hệ qua Messenger">
+        <img src={messenger} alt="Messenger" className="w-full h-full object-contain" />
         <span className="float-btn-pulse" />
       </a>
 
