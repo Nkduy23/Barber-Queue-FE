@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
+
+import logo from "../../assets/minhbao-removebg-preview.png";
 
 const NAV_ITEMS = [
   {
@@ -66,7 +69,11 @@ export default function AdminLayout() {
       <aside className={`hidden md:flex flex-col bg-white border-r border-border transition-all duration-200 ${collapsed ? "w-[60px]" : "w-[220px]"} flex-shrink-0 sticky top-0 h-screen`}>
         {/* Logo */}
         <div className="h-[60px] flex items-center border-b border-border px-4 gap-3 overflow-hidden">
-          <span className="font-serif text-[18px] text-c-text flex-shrink-0">💈</span>
+          <Link to="/" className="flex items-center gap-2 no-underline min-w-0">
+            <span className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+              <img src={logo} alt="Logo shop" className="w-full h-full object-contain" />
+            </span>
+          </Link>
           {!collapsed && (
             <div className="overflow-hidden">
               <span className="font-serif text-[15px] text-c-text block leading-tight">Baw Men's</span>
