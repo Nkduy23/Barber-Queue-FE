@@ -14,6 +14,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import History from "./pages/admin/History";
 import Settings from "./pages/admin/Settings";
 import ScrollToTop from "./components/ScrollToTop";
+import BookingReminderModal from "./components/BookingReminderModal";
 
 function PublicLayout() {
   const { pathname } = useLocation();
@@ -34,6 +35,7 @@ function PublicLayout() {
       <Footer />
       <MobileTabBar />
       <FloatButtons />
+      <BookingReminderModal />
     </div>
   );
 }

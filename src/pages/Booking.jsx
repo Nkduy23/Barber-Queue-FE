@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { calcWaitMinutes, formatWaitTime, calcETAFromScheduled, todayVN } from "../utils/timeHelper";
 import { useSlots, useServices } from "../hooks/useQueue";
+import { saveBookingReminder } from "../hooks/useBookingReminder";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -69,6 +70,14 @@ export default function Booking() {
       const data = await res.json();
       if (!res.ok) return setError(data.error || "Đặt lịch thất bại");
       setTicket(data);
+      saveBookingReminder({
+        name,
+        phone,
+        date: selectedDate,
+        time: selectedSlot,
+        services: selectedServices.map((s) => s.name).join(", "),
+        totalPrice,
+      });
     } catch {
       setError("Không kết nối được tới máy chủ.");
     } finally {
