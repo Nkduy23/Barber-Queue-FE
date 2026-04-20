@@ -43,7 +43,7 @@ export default function Login() {
       >
         <div className="absolute inset-0 bg-black/55" />
         <div className="relative z-10">
-          <div className="font-serif text-[34px] text-white mb-1">MinhBao</div>
+          <div className="font-serif text-[34px] text-white mb-1">Baw Men’s Hair Designer</div>
           <p className="text-white/40 text-[13px] m-0">Admin Dashboard</p>
         </div>
       </div>

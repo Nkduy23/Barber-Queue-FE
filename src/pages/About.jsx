@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 
 const TEAM = [
   { name: "Minh Bảo", role: "Master Barber · 8 năm", img: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=400&q=80" },
-  { name: "Tuấn Kiệt", role: "Senior Barber · 5 năm", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
-  { name: "Hoàng Nam", role: "Barber · 3 năm", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" },
+  { name: "Phúc Hậu", role: "Senior Barber · 5 năm", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
+  { name: "Khánh Duy", role: "Barber · 3 năm", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" },
 ];
 
 const VALUES = [
@@ -21,7 +21,7 @@ export default function About() {
         <div className="absolute inset-0" style={{ background: "rgba(10,10,10,0.62)" }} />
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8">
           <p className="label text-white/40 mb-4">— Về chúng tôi</p>
-          <h1 className="font-serif text-[clamp(34px,5vw,60px)] text-white m-0">MinhBao Barber</h1>
+          <h1 className="font-serif text-[clamp(34px,5vw,60px)] text-white m-0">Baw Men’s Hair Designer Barber</h1>
         </div>
       </section>
 
@@ -37,7 +37,7 @@ export default function About() {
             </h2>
             <div className="w-8 h-[2px] bg-c-text mb-6 rounded-full" />
             {[
-              "MinhBao Barber ra đời năm 2026 với sứ mệnh đơn giản: mang trải nghiệm cắt tóc chất lượng cao nhất cho phái nam tại TP. HCM.",
+              "Baw Men’s Hair Designer Barber ra đời năm 2026 với sứ mệnh đơn giản: mang trải nghiệm cắt tóc chất lượng cao nhất cho phái nam tại TP. HCM.",
               "Chúng tôi không chỉ cắt tóc — chúng tôi xây dựng phong cách. Mỗi khách được tư vấn kỹ và phục vụ với sự tôn trọng tối đa.",
               "Chúng tôi ra mắt hệ thống hàng chờ thời gian thực — giúp khách không còn chờ lâu hay không biết bao giờ tới lượt.",
             ].map((text, i) => (

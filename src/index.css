@@ -28,7 +28,7 @@
   --color-gold-border:    #fcd34d;
 }
 
-/* ── Non-color tokens (keep as CSS vars, used with var() in JSX) ── */
+/* ── Non-color tokens ── */
 :root {
   --font-sans:  'Inter', system-ui, sans-serif;
   --font-serif: 'Playfair Display', serif;
@@ -44,6 +44,8 @@
   --shadow-sm: 0 1px 6px rgba(0,0,0,0.06);
   --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
   --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
+
+  --tab-height: 64px;
 }
 
 * { box-sizing: border-box; }
@@ -74,6 +76,15 @@ body {
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
+}
+@keyframes zalo-pulse {
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 104, 255, 0.5); }
+  70%  { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 104, 255, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 104, 255, 0); }
+}
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .animate-fade-up { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
@@ -178,4 +189,207 @@ body {
 .divider {
   width: 32px; height: 2px; background: #111111;
   border-radius: 99px; margin: 0 auto;
+}
+
+/* ─────────────────────────────────────────────────
+   MOBILE TAB BAR
+───────────────────────────────────────────────── */
+.mobile-tab-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid #e5e5e5;
+  height: var(--tab-height);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+}
+
+@media (max-width: 767px) {
+  .mobile-tab-bar {
+    display: flex;
+    align-items: stretch;
+  }
+
+  /* Add bottom padding to main content so tab bar doesn't overlap */
+  main {
+    padding-bottom: calc(var(--tab-height) + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+.mobile-tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-decoration: none;
+  color: #999;
+  font-family: var(--font-sans);
+  transition: all 0.15s ease;
+  position: relative;
+  padding: 6px 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-tab-item.active {
+  color: #111111;
+}
+
+.mobile-tab-item.primary {
+  color: #111111;
+}
+
+.mobile-tab-item.primary .mobile-tab-icon {
+  background: #111111;
+  color: #fff;
+  border-radius: 14px;
+  padding: 8px;
+  margin-bottom: 2px;
+}
+
+.mobile-tab-item.active.primary .mobile-tab-icon {
+  transform: scale(1.05);
+}
+
+.mobile-tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.mobile-tab-item.active .mobile-tab-icon {
+  transform: scale(1.1);
+}
+
+.mobile-tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.mobile-tab-dot {
+  position: absolute;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #111111;
+}
+
+/* ─────────────────────────────────────────────────
+   FLOAT BUTTONS (Scroll to top + Zalo)
+───────────────────────────────────────────────── */
+.float-buttons {
+  position: fixed;
+  bottom: 90px;
+  right: 16px;
+  z-index: 49;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .float-buttons {
+    bottom: 32px;
+    right: 24px;
+  }
+}
+
+.float-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-md);
+  animation: float-in 0.3s ease forwards;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.float-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.float-btn:active {
+  transform: translateY(0);
+}
+
+/* Zalo button */
+.float-zalo {
+  background: #0068FF;
+  position: relative;
+}
+
+.float-btn-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 104, 255, 0.3);
+  animation: zalo-pulse 2s infinite;
+  pointer-events: none;
+}
+
+/* Scroll top button */
+.float-scroll-top {
+  background: white;
+  color: #111;
+  border: 1px solid #e5e5e5;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease;
+}
+
+.float-scroll-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* ─────────────────────────────────────────────────
+   RESPONSIVE HELPERS
+───────────────────────────────────────────────── */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent text overflow globally */
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Better touch targets on mobile */
+@media (max-width: 767px) {
+  button, a {
+    min-height: 36px;
+  }
+
+  .btn-primary, .btn-outline, .btn-ghost {
+    min-height: 44px;
+  }
+}
+
+/* Footer spacing on mobile for tab bar */
+@media (max-width: 767px) {
+  footer {
+    margin-bottom: var(--tab-height);
+  }
 }
