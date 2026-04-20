@@ -255,7 +255,7 @@ export default function BookingReminderModal() {
           {/* Actions */}
           <div style={{ display: "flex", gap: 8 }}>
             <Link
-              to="/queue"
+              to={`/queue?date=${reminder.date}`}
               onClick={handleClose}
               style={{
                 flex: 1,

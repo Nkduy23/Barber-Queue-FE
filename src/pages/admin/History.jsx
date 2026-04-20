@@ -18,6 +18,8 @@ export default function History() {
   const [selectedDate, setSelectedDate] = useState(todayVN);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   const fetchHistory = useCallback(
     async (date) => {
@@ -50,8 +52,15 @@ export default function History() {
     fetchHistory(selectedDate);
   }, [selectedDate, fetchHistory, token, navigate]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedDate]);
+
   const summary = data?.summary;
   const entries = data?.entries || [];
+
+  const totalPages = Math.ceil(entries.length / PAGE_SIZE);
+  const paginatedEntries = entries.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div>
@@ -150,7 +159,7 @@ export default function History() {
               <>
                 {/* Mobile card view */}
                 <div className="md:hidden divide-y divide-border">
-                  {entries.map((e, i) => {
+                  {paginatedEntries.map((e, i) => {
                     const st = STATUS_MAP[e.status] || STATUS_MAP.waiting;
                     return (
                       <div key={e.id} className="px-4 py-3">
@@ -186,7 +195,7 @@ export default function History() {
                       </tr>
                     </thead>
                     <tbody>
-                      {entries.map((e, i) => {
+                      {paginatedEntries.map((e, i) => {
                         const st = STATUS_MAP[e.status] || STATUS_MAP.waiting;
                         return (
                           <tr key={e.id} className="border-b border-border hover:bg-bg-2 transition-colors">
@@ -214,6 +223,70 @@ export default function History() {
             )}
           </div>
         </>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 md:px-7 py-3 md:py-4 border-t border-border">
+          <span className="text-[11px] md:text-[12px] text-c-text-3">
+            Trang {currentPage} / {totalPages} — {entries.length} lượt
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              className="px-2 py-1.5 text-[11px] rounded-[var(--r-md)] border border-border text-c-text-2 hover:bg-bg-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+            >
+              «
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => p - 1)}
+              disabled={currentPage === 1}
+              className="px-2.5 py-1.5 text-[11px] rounded-[var(--r-md)] border border-border text-c-text-2 hover:bg-bg-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+            >
+              ‹
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+              .reduce((acc, p, idx, arr) => {
+                if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, idx) =>
+                p === "..." ? (
+                  <span key={`dots-${idx}`} className="px-2 text-[11px] text-c-text-3">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`min-w-[28px] px-2 py-1.5 text-[11px] rounded-[var(--r-md)] border transition-all ${
+                      currentPage === p ? "border-c-text bg-c-text text-white" : "border-border text-c-text-2 hover:bg-bg-2 bg-white"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+
+            <button
+              onClick={() => setCurrentPage((p) => p + 1)}
+              disabled={currentPage === totalPages}
+              className="px-2.5 py-1.5 text-[11px] rounded-[var(--r-md)] border border-border text-c-text-2 hover:bg-bg-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+            >
+              ›
+            </button>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="px-2 py-1.5 text-[11px] rounded-[var(--r-md)] border border-border text-c-text-2 hover:bg-bg-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+            >
+              »
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

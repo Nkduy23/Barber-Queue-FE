@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { calcWaitMinutes, formatWaitTime, calcETAFromScheduled, todayVN } from "../utils/timeHelper";
+import { calcWaitMinutes, formatWaitTime, toVNDate, calcETAFromScheduled, todayVN } from "../utils/timeHelper";
 import { useSlots, useServices } from "../hooks/useQueue";
 import { saveBookingReminder } from "../hooks/useBookingReminder";
 
@@ -19,6 +19,21 @@ function maxBookingDate() {
   return d.toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
 }
 
+function validatePhone(digits) {
+  if (!digits) return "";
+  if (digits.length < 9) return "Số điện thoại quá ngắn";
+  if (digits.length > 10) return "Số điện thoại quá dài";
+  if (!/^0[3-9]\d{8}$/.test(digits)) return "Số không hợp lệ (VD: 0815 934 934)";
+  return "";
+}
+
+function formatPhoneDisplay(raw) {
+  const d = raw.replace(/\D/g, "").slice(0, 10);
+  if (d.length <= 4) return d;
+  if (d.length <= 7) return `${d.slice(0, 4)} ${d.slice(4)}`;
+  return `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7)}`;
+}
+
 export default function Booking() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -29,6 +44,7 @@ export default function Booking() {
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
 
   const { slots, loadingSlots, activeBarbers } = useSlots(selectedDate);
   const { services, loadingServices } = useServices();
@@ -52,6 +68,8 @@ export default function Booking() {
     if (!selectedSlot) return setError("Vui lòng chọn giờ hẹn");
     if (!selectedServiceIds.length) return setError("Vui lòng chọn ít nhất 1 dịch vụ");
 
+    const phoneErr = validatePhone(phone);
+    if (phoneErr) return setError(phoneErr);
     setError("");
     setLoading(true);
     try {
@@ -114,7 +132,7 @@ export default function Booking() {
               </div>
             ))}
             <div className="mt-6 md:mt-7 flex flex-col gap-2.5">
-              <Link to="/queue" className="btn-primary justify-center">
+              <Link to={`/queue?date=${toVNDate(ticket.booking_date) ?? selectedDate}`} className="btn-primary justify-center">
                 Theo dõi hàng chờ →
               </Link>
               <button
@@ -155,9 +173,25 @@ export default function Booking() {
               <input type="text" placeholder="Nguyễn Văn A" value={name} onChange={(e) => setName(e.target.value)} className="input-field" required autoComplete="name" />
             </Field>
 
-            <Field label="Số điện thoại *">
-              <input type="tel" placeholder="0815 934 934" value={phone} onChange={(e) => setPhone(e.target.value)} className="input-field" required autoComplete="tel" inputMode="numeric" />
-            </Field>
+            <div className="mb-4 md:mb-5">
+              <label className="block text-[12px] md:text-[13px] font-medium text-c-text-2 mb-2">Số điện thoại *</label>
+              <input
+                type="tel"
+                placeholder="0815 934 934"
+                value={formatPhoneDisplay(phone)}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  setPhone(raw);
+                  setPhoneError(validatePhone(raw));
+                }}
+                onBlur={() => setPhoneError(validatePhone(phone))}
+                className={`input-field ${phoneError ? "!border-c-red" : ""}`}
+                required
+                autoComplete="tel"
+                inputMode="numeric"
+              />
+              {phoneError && <p className="mt-1.5 text-[11px] text-c-red">⚠ {phoneError}</p>}
+            </div>
 
             {/* ── Dịch vụ ── */}
             <div className="mb-4 md:mb-5">

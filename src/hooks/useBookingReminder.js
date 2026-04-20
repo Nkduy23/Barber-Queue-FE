@@ -1,4 +1,3 @@
-// hooks/useBookingReminder.js
 const STORAGE_KEY = "booking_reminder";
 
 export function saveBookingReminder({ name, phone, date, time, services, totalPrice }) {

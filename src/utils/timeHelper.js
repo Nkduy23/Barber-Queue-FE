@@ -68,3 +68,11 @@ export function calcETAFromScheduled(scheduledTimeStr, avgMinutes = AVG_MINUTES)
   const min = totalMin % 60;
   return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
 }
+
+export function toVNDate(isoString) {
+  if (!isoString) return null;
+
+  return new Date(isoString).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+}
