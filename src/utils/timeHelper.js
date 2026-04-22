@@ -12,7 +12,6 @@ export function formatWaitTime(minutes) {
   return m > 0 ? `~${h} giờ ${m} phút` : `~${h} giờ`;
 }
 
-// Giữ nguyên — Booking.jsx đang dùng
 export function calcEstimatedTime(waitMinutes) {
   const now = new Date();
   now.setMinutes(now.getMinutes() + waitMinutes);
@@ -55,15 +54,18 @@ export function todayVN() {
 }
 
 /**
- * Tính ETA từ scheduled_time (VN naive string, có thể có "Z" suffix)
- * Bóc HH:MM trực tiếp từ string — KHÔNG dùng new Date() để tránh lỗi timezone
- * ETA = scheduled_time + avgMinutes (chỉ cộng 1 lần, không nhân position)
+ * Tính ETA = scheduled_time + duration thực tế của dịch vụ
+ * Bóc HH:MM trực tiếp từ string — tránh lỗi timezone
+ *
+ * @param {string} scheduledTimeStr - chuỗi chứa "HH:MM" (VD: "2026-04-22 14:00:00Z")
+ * @param {number} duration - số phút thực tế của dịch vụ (từ total_duration của entry)
  */
-export function calcETAFromScheduled(scheduledTimeStr, avgMinutes = AVG_MINUTES) {
+export function calcETAFromScheduled(scheduledTimeStr, duration = AVG_MINUTES) {
   if (!scheduledTimeStr) return null;
-  const m = String(scheduledTimeStr).match(/(\d{2}):(\d{2})/);
+  // Match HH:MM sau ký tự T hoặc space (bỏ qua phần date YYYY-MM-DD)
+  const m = String(scheduledTimeStr).match(/[T ](\d{2}):(\d{2})/);
   if (!m) return null;
-  const totalMin = parseInt(m[1]) * 60 + parseInt(m[2]) + avgMinutes;
+  const totalMin = parseInt(m[1]) * 60 + parseInt(m[2]) + duration;
   const h = Math.floor(totalMin / 60) % 24;
   const min = totalMin % 60;
   return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
@@ -71,7 +73,6 @@ export function calcETAFromScheduled(scheduledTimeStr, avgMinutes = AVG_MINUTES)
 
 export function toVNDate(isoString) {
   if (!isoString) return null;
-
   return new Date(isoString).toLocaleDateString("en-CA", {
     timeZone: "Asia/Ho_Chi_Minh",
   });

@@ -6,21 +6,13 @@ import logo from "../assets/minhbao-removebg-preview.png";
 const AVG_MINUTES = 25;
 const MAX_VISIBLE = 5;
 
+// QR code bằng QR API public (không cần thư viện)
+const QR_URL = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(typeof window !== "undefined" ? `${window.location.origin}/booking` : "/booking")}`;
+
 function fmtScheduled(s) {
   if (!s) return null;
   const m = String(s).match(/(\d{2}:\d{2})/);
   return m ? m[1] : null;
-}
-
-function calcETA(entry) {
-  const raw = String(entry.scheduled_time ?? "");
-  const m = raw.match(/(\d{2}):(\d{2})/);
-  if (!m) return null;
-  const [, hh, mm] = m;
-  const totalMin = parseInt(hh) * 60 + parseInt(mm) + AVG_MINUTES;
-  const etaH = Math.floor(totalMin / 60) % 24;
-  const etaM = totalMin % 60;
-  return `${String(etaH).padStart(2, "0")}:${String(etaM).padStart(2, "0")}`;
 }
 
 function OverflowTicker({ items }) {
@@ -28,24 +20,25 @@ function OverflowTicker({ items }) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    if (!items.length) return;
-    setIdx((i) => (i >= items.length ? 0 : i));
-  }, [items.length]);
-
-  useEffect(() => {
     if (items.length <= 1) return;
+
     const cycle = setInterval(() => {
       setVisible(false);
+
       setTimeout(() => {
         setIdx((i) => (i + 1) % items.length);
         setVisible(true);
       }, 400);
     }, 2800);
+
     return () => clearInterval(cycle);
   }, [items.length]);
 
   if (!items.length) return null;
-  const entry = items[idx] ?? items[0];
+
+  const safeIdx = idx % items.length;
+  const entry = items[safeIdx];
+
   const sch = fmtScheduled(entry.scheduled_time);
 
   return (
@@ -174,30 +167,19 @@ export default function Display() {
                 {visibleWaiting.map((entry, i) => {
                   const isFirst = i === 0;
                   const sch = fmtScheduled(entry.scheduled_time);
-
                   return (
                     <div
                       key={entry.id}
                       className={`flex items-center gap-3 md:gap-4 px-3 md:px-5 py-2.5 md:py-3.5 rounded-[var(--r-lg)] border transition-all
                         ${isFirst ? "bg-white border-border-2 border-l-[2.5px] border-l-c-text" : "bg-white/70 border-border"}`}
                     >
-                      <span
-                        className={`text-[13px] md:text-[14px] font-semibold w-7 md:w-8 flex-shrink-0 tabular-nums
-                          ${isFirst ? "text-c-text" : "text-c-text-3"}`}
-                      >
+                      <span className={`text-[13px] md:text-[14px] font-semibold w-7 md:w-8 flex-shrink-0 tabular-nums ${isFirst ? "text-c-text" : "text-c-text-3"}`}>
                         {String(i + 1).padStart(2, "0")}
                       </span>
-
                       <div className="flex-1 min-w-0">
-                        <p
-                          className={`font-serif m-0 leading-tight truncate
-                            ${isFirst ? "text-[20px] md:text-[26px] text-c-text" : "text-[16px] md:text-[20px] text-c-text-2"}`}
-                        >
-                          {entry.name}
-                        </p>
+                        <p className={`font-serif m-0 leading-tight truncate ${isFirst ? "text-[20px] md:text-[26px] text-c-text" : "text-[16px] md:text-[20px] text-c-text-2"}`}>{entry.name}</p>
                         {sch && <span className="text-[10px] md:text-[11px] text-c-text-3">Hẹn {sch}</span>}
                       </div>
-
                       {isFirst && (
                         <span className="text-[9px] md:text-[10px] font-semibold text-c-text bg-bg-2 border border-border-2 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full flex-shrink-0 whitespace-nowrap">
                           Sắp tới lượt
@@ -213,12 +195,22 @@ export default function Display() {
         </div>
       </div>
 
-      {/* ── Footer ── */}
-      <div className="flex flex-wrap justify-between items-center gap-2 px-4 md:px-10 py-3 md:py-5 border-t border-border bg-white">
+      {/* ── Footer with QR ── */}
+      <div className="flex flex-wrap justify-between items-center gap-3 px-4 md:px-10 py-3 md:py-4 border-t border-border bg-white">
         <div className="flex flex-wrap gap-3 md:gap-6">
           <span className="text-[11px] md:text-[12px] text-c-text-3">Xã Củ Chi, TP. Hồ Chí Minh</span>
           <span className="text-[11px] md:text-[12px] text-c-text-3">0815 934 934</span>
         </div>
+
+        {/* QR code đặt lịch */}
+        <div className="flex items-center gap-3 bg-bg-2 border border-border rounded-[var(--r-md)] px-3 py-2">
+          <img src={QR_URL} alt="QR đặt lịch" className="w-12 h-12 md:w-16 md:h-16 rounded-[var(--r-sm)]" />
+          <div>
+            <p className="m-0 text-[10px] md:text-[11px] font-semibold text-c-text uppercase tracking-wide">Đặt lịch ngay</p>
+            <p className="m-0 text-[9px] md:text-[10px] text-c-text-3">Quét QR để đặt lịch</p>
+          </div>
+        </div>
+
         <div className="flex items-center gap-2">
           <span className="live-dot" />
           <span className="text-[10px] md:text-[11px] text-c-text-3 uppercase tracking-wider">Thời gian thực</span>

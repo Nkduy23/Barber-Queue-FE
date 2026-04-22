@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import MobileTabBar from "./components/MobileTabBar";
@@ -16,13 +17,40 @@ import Settings from "./pages/admin/Settings";
 import ScrollToTop from "./components/ScrollToTop";
 import BookingReminderModal from "./components/BookingReminderModal";
 
-function PublicLayout() {
+// Scroll progress bar component
+function ScrollProgress() {
   const { pathname } = useLocation();
 
+  useEffect(() => {
+    // Reset khi đổi trang
+    const bar = document.getElementById("scroll-progress");
+    if (bar) bar.style.width = "0%";
+
+    const onScroll = () => {
+      const bar = document.getElementById("scroll-progress");
+      if (!bar) return;
+      const doc = document.documentElement;
+      const scrolled = doc.scrollTop;
+      const total = doc.scrollHeight - doc.clientHeight;
+      const pct = total > 0 ? (scrolled / total) * 100 : 0;
+      bar.style.width = `${pct}%`;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [pathname]);
+
+  return null;
+}
+
+function PublicLayout() {
+  const { pathname } = useLocation();
   if (pathname === "/display") return <Display />;
 
   return (
     <div style={{ minHeight: "100svh", display: "flex", flexDirection: "column" }}>
+      {/* Scroll progress bar */}
+      <div id="scroll-progress" style={{ position: "fixed", top: 0, left: 0, height: 2, background: "#111", zIndex: 9999, width: "0%", pointerEvents: "none", transition: "width 0.1s linear" }} />
       <Navbar />
       <main style={{ flex: 1, paddingBottom: "env(safe-area-inset-bottom)" }}>
         <Routes>
@@ -44,8 +72,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <ScrollProgress />
       <Routes>
-        {/* ── Admin (không có Navbar/Footer) ── */}
         <Route path="/admin/login" element={<Login />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
@@ -53,8 +81,6 @@ export default function App() {
           <Route path="history" element={<History />} />
           <Route path="settings" element={<Settings />} />
         </Route>
-
-        {/* ── Public (có Navbar/Footer) ── */}
         <Route path="*" element={<PublicLayout />} />
       </Routes>
     </BrowserRouter>

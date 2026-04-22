@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useSocket } from "./useSocket";
+import { getSocket } from "./useSocket";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -7,7 +7,7 @@ export function useQueue(date = null) {
   const [queue, setQueue] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const socket = useSocket();
+  const socket = getSocket();
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -33,21 +33,20 @@ export function useQueue(date = null) {
   }, []);
 
   useEffect(() => {
-    fetchQueue();
-    fetchStats();
+    (async () => {
+      await fetchQueue();
+      await fetchStats();
+    })();
   }, [fetchQueue, fetchStats]);
 
   useEffect(() => {
     if (!socket) return;
     const handler = (data) => {
       const rows = Array.isArray(data) ? data : [];
-      // Chỉ update queue nếu đang xem hôm nay hoặc không filter ngày
       if (!date) setQueue(rows);
 
       const waiting = rows.filter((q) => q.status === "waiting");
       const currentServing = rows.filter((q) => q.status === "serving");
-
-      // Tính avg duration từ services nếu có, fallback 25p
       const avgDur = currentServing.length ? (currentServing[0]?.total_duration ?? 25) : 25;
 
       setStats((prev) => ({
@@ -65,7 +64,8 @@ export function useQueue(date = null) {
 }
 
 // ── Slots ──────────────────────────────────────────────────────
-export function useSlots(date) {
+// duration: tổng số phút của dịch vụ đang chọn (truyền vào để BE check overlap đúng)
+export function useSlots(date, duration = null) {
   const [slots, setSlots] = useState([]);
   const [settings, setSettings] = useState(null);
   const [activeBarbers, setActiveBarbers] = useState(0);
@@ -74,8 +74,10 @@ export function useSlots(date) {
   const fetchSlots = useCallback(async () => {
     setLoadingSlots(true);
     try {
-      const query = date ? `?date=${date}` : "";
-      const res = await fetch(`${API}/api/queue/slots${query}`);
+      const params = new URLSearchParams();
+      if (date) params.set("date", date);
+      if (duration) params.set("duration", duration);
+      const res = await fetch(`${API}/api/queue/slots?${params.toString()}`);
       const data = await res.json();
       setSlots(data.slots || []);
       setSettings(data.settings || null);
@@ -85,10 +87,12 @@ export function useSlots(date) {
     } finally {
       setLoadingSlots(false);
     }
-  }, [date]);
+  }, [date, duration]);
 
   useEffect(() => {
-    fetchSlots();
+    (async () => {
+      await fetchSlots();
+    })();
   }, [fetchSlots]);
 
   return { slots, settings, activeBarbers, loadingSlots, refetchSlots: fetchSlots };
@@ -110,7 +114,9 @@ export function useBarbers(token) {
   }, [token]);
 
   useEffect(() => {
-    fetchBarbers();
+    (async () => {
+      await fetchBarbers();
+    })();
   }, [fetchBarbers]);
 
   return { barbers, refetchBarbers: fetchBarbers };
@@ -122,11 +128,17 @@ export function useServices() {
   const [loadingServices, setLoadingServices] = useState(true);
 
   useEffect(() => {
-    fetch(`${API}/api/services`)
-      .then((r) => r.json())
-      .then((data) => setServices(Array.isArray(data) ? data : []))
-      .catch(console.error)
-      .finally(() => setLoadingServices(false));
+    (async () => {
+      try {
+        const r = await fetch(`${API}/api/services`);
+        const data = await r.json();
+        setServices(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingServices(false);
+      }
+    })();
   }, []);
 
   return { services, loadingServices };

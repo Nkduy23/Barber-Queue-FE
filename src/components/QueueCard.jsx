@@ -1,47 +1,13 @@
 import StatusBadge from "./StatusBadge";
-import { formatTime, formatScheduledTime, calcWaitMinutes } from "../utils/timeHelper";
+import { formatTime, formatScheduledTime } from "../utils/timeHelper";
 import { calcETAFromScheduled } from "../utils/timeHelper";
 
-/**
- * Tính ETA dựa trên scheduled_time (nếu có) hoặc now
- * Logic: base + queuePosition * AVG_MINUTES
- *   - Có scheduled_time → base = scheduled_time (giờ VN, bóc từ string)
- *   - Walk-in           → base = now
- */
-function calcETA(entry, queuePosition) {
-  if (queuePosition == null) return null;
-
-  const waitMs = calcWaitMinutes(queuePosition) * 60 * 1000;
-
-  let baseTime;
-  if (entry.scheduled_time) {
-    // Bóc HH:MM từ string VN naive (tránh bị lệch TZ)
-    const match = String(entry.scheduled_time).match(/(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
-    if (match) {
-      // Ghép lại không có Z → browser parse như local time (VN nếu máy đặt VN, hoặc dùng trick bên dưới)
-      // Dùng Date.parse với offset tường minh để luôn đúng dù máy ở timezone nào
-      const [, datePart, timePart] = match;
-      // "+07:00" = VN timezone
-      baseTime = new Date(`${datePart}T${timePart}:00+07:00`).getTime();
-    } else {
-      baseTime = Date.now();
-    }
-  } else {
-    baseTime = Date.now();
-  }
-
-  const etaDate = new Date(baseTime + waitMs);
-  return etaDate.toLocaleTimeString("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Ho_Chi_Minh",
-  });
-}
-
-export default function QueueCard({ entry, rank, isMe = false, queuePosition = null }) {
+export default function QueueCard({ entry, rank, isMe = false }) {
   const isServing = entry.status === "serving";
-  const etaTime = !isServing ? calcETA(entry, queuePosition) : null;
-  const eta = calcETAFromScheduled(entry.scheduled_time);
+
+  // ETA = giờ hẹn + total_duration thực tế của dịch vụ khách đặt
+  // Không dùng queuePosition * AVG vì mỗi người có duration khác nhau
+  const eta = !isServing ? calcETAFromScheduled(entry.scheduled_time, entry.total_duration ?? 25) : null;
 
   return (
     <div
@@ -73,7 +39,9 @@ export default function QueueCard({ entry, rank, isMe = false, queuePosition = n
           ) : (
             <p className="text-[12px] m-0 text-c-text-3">Đặt lúc: {formatTime(entry.created_at)}</p>
           )}
-          {etaTime && <span className="badge-eta">Dự kiến xong: ⏰{eta ? ` ~${eta}` : null}</span>}
+          {/* Hiển thị duration nếu dịch vụ dài */}
+          {entry.total_duration && entry.total_duration > 30 && <span className="text-[10px] text-c-text-3 bg-bg-2 border border-border px-1.5 py-0.5 rounded">{entry.total_duration} phút</span>}
+          {eta && <span className="badge-eta">⏰ Xong ~{eta}</span>}
         </div>
       </div>
 

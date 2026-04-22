@@ -49,12 +49,11 @@ export default function History() {
       navigate("/admin/login");
       return;
     }
-    fetchHistory(selectedDate);
-  }, [selectedDate, fetchHistory, token, navigate]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedDate]);
+    (async () => {
+      await fetchHistory(selectedDate);
+    })();
+  }, [selectedDate, fetchHistory, token, navigate]);
 
   const summary = data?.summary;
   const entries = data?.entries || [];

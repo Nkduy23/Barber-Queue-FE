@@ -41,7 +41,8 @@ export default function Settings() {
       navigate("/admin/login");
       return;
     }
-    fetchStats();
+
+    Promise.resolve().then(() => fetchStats());
   }, [fetchStats, token, navigate]);
 
   const handleSave = async () => {

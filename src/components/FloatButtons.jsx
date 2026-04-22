@@ -10,13 +10,13 @@ export default function FloatButtons() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { pathname } = useLocation();
 
-  if (pathname === "/display") return null;
-
   useEffect(() => {
     const onScroll = () => setShowScrollTop(window.scrollY > 300);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  if (pathname === "/display") return null;
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 

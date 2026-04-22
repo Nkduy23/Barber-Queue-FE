@@ -32,13 +32,66 @@ const SERVICES_FALLBACK = [
   { icon: "🎨", name: "Nhuộm tóc", price: "200.000đ", time: "60 phút" },
 ];
 
+const PRODUCTS = [
+  {
+    img: "https://images.unsplash.com/photo-1621607512214-68297480165e?w=600&q=80",
+    name: "Pomade Wax",
+    brand: "American Crew",
+    desc: "Độ bóng cao, giữ nếp cả ngày. Phù hợp slick back & side part.",
+    tag: "Bán chạy",
+    tagColor: "#d97706",
+    tagBg: "#fffbeb",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?w=600&q=80",
+    name: "Hair Clay",
+    brand: "Layrite",
+    desc: "Lực giữ mạnh, mờ tự nhiên. Tạo kiểu rối bụi, texture cực xịn.",
+    tag: "Phổ biến",
+    tagColor: "#16a34a",
+    tagBg: "#f0fdf4",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80",
+    name: "Dưỡng râu",
+    brand: "Bulldog",
+    desc: "Dầu beard oil dưỡng ẩm, làm mềm râu & khử mùi suốt ngày dài.",
+    tag: "Mới về",
+    tagColor: "#0284c7",
+    tagBg: "#f0f9ff",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=600&q=80",
+    name: "Dầu gội nam",
+    brand: "Redken Brews",
+    desc: "Làm sạch sâu, giảm gầu, tạo độ phồng tự nhiên cho mọi kiểu tóc.",
+    tag: "Gợi ý",
+    tagColor: "#7c3aed",
+    tagBg: "#faf5ff",
+  },
+];
+
+function StatSkeleton() {
+  return (
+    <div className="bg-bg-2 border border-border rounded-[var(--r-xl)] px-5 md:px-7 py-6 md:py-8">
+      <div className="skeleton h-3 w-20 rounded mb-4" />
+      <div className="skeleton h-12 w-16 rounded mb-2" />
+      <div className="skeleton h-3 w-12 rounded" />
+    </div>
+  );
+}
+
 export default function Home() {
   const { stats, loading } = useQueue();
   const [slide, setSlide] = useState(0);
+  const [kenBurns, setKenBurns] = useState(0);
   const { services } = useServices();
 
   useEffect(() => {
-    const t = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 5500);
+    const t = setInterval(() => {
+      setSlide((s) => (s + 1) % SLIDES.length);
+      setKenBurns((k) => k + 1);
+    }, 5500);
     return () => clearInterval(t);
   }, []);
 
@@ -49,7 +102,17 @@ export default function Home() {
       {/* ── HERO ── */}
       <section className="relative h-[55vh] min-h-[380px] md:h-[45vh] md:min-h-[450px] overflow-hidden">
         {SLIDES.map((s, i) => (
-          <div key={i} className="absolute inset-0 bg-cover bg-center transition-opacity duration-[1200ms]" style={{ backgroundImage: `url(${s.img})`, opacity: i === slide ? 1 : 0 }} />
+          <div
+            key={i}
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${s.img})`,
+              opacity: i === slide ? 1 : 0,
+              transition: "opacity 1.2s ease",
+              transform: i === slide ? "scale(1.06)" : "scale(1)",
+              animation: i === slide ? "kenBurns 6s ease-out forwards" : "none",
+            }}
+          />
         ))}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(10,10,10,0.85) 55%, rgba(10,10,10,0.3))" }} />
 
@@ -59,16 +122,21 @@ export default function Home() {
             <h1 className="font-serif text-white m-0 mb-4 md:mb-6 leading-[1.04]" style={{ fontSize: "clamp(36px, 8vw, 84px)", whiteSpace: "pre-line" }}>
               {current.title}
             </h1>
-            <p className="text-white/60 text-[13px] md:text-[15px] mb-7 md:mb-10 max-w-[340px] leading-[1.8]">{current.sub}</p>
+            <p className="text-white/60 text-[13px] md:text-[15px] mb-5 md:mb-8 max-w-[340px] leading-[1.8]">{current.sub}</p>
+
+            {/* Social proof */}
+            <div className="flex items-center gap-3 mb-6 md:mb-8">
+              <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5">
+                <span className="text-yellow-400 text-[13px]">★★★★★</span>
+                <span className="text-white/80 text-[11px] font-medium ml-1">4.9 · 200+ khách</span>
+              </div>
+            </div>
+
             <div className="flex gap-3 flex-wrap items-center">
               <Link to="/booking" className="btn-primary" style={{ background: "white", color: "#111", padding: "11px 22px", fontSize: 14 }}>
                 Đặt lịch ngay →
               </Link>
-              <Link
-                to="/queue"
-                className="text-white/60 hover:text-white no-underline text-[13px] md:text-[14px] font-medium
-                border-b border-white/20 pb-0.5 transition-colors"
-              >
+              <Link to="/queue" className="text-white/60 hover:text-white no-underline text-[13px] md:text-[14px] font-medium border-b border-white/20 pb-0.5 transition-colors">
                 Xem hàng chờ
               </Link>
             </div>
@@ -103,42 +171,49 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-8 md:mb-10">
-            {/* Đang chờ */}
-            <div className="bg-bg-2 border border-border rounded-[var(--r-xl)] px-5 md:px-7 py-6 md:py-8 hover:shadow-[var(--shadow-md)] hover:border-border-2 transition-all">
-              <p className="label mb-3 md:mb-4">Đang chờ</p>
-              <p className="font-serif text-[48px] md:text-[56px] leading-none m-0 mb-1.5 text-c-text">{loading ? "—" : (stats?.waitingCount ?? 0)}</p>
-              <p className="text-[12px] text-c-text-3 m-0">người</p>
-            </div>
-
-            {/* Thời gian chờ */}
-            <div className="bg-bg-2 border border-border rounded-[var(--r-xl)] px-5 md:px-7 py-6 md:py-8 hover:shadow-[var(--shadow-md)] hover:border-border-2 transition-all">
-              <p className="label mb-3 md:mb-4">Thời gian chờ</p>
-              <p className="font-serif text-[32px] md:text-[40px] leading-none m-0 mb-1.5 text-c-text">{loading ? "—" : formatWaitTime(stats?.estimatedWaitMinutes ?? 0)}</p>
-              <p className="text-[12px] text-c-text-3 m-0">ước tính</p>
-            </div>
-
-            {/* Đang phục vụ */}
-            <div className="bg-bg-2 border border-border rounded-[var(--r-xl)] px-5 md:px-7 py-6 md:py-8 hover:shadow-[var(--shadow-md)] hover:border-border-2 transition-all">
-              <p className="label mb-3 md:mb-4">Đang phục vụ</p>
-              {!stats?.currentServing?.length ? (
-                <>
-                  <p className="font-serif text-[32px] md:text-[40px] leading-none m-0 mb-1.5 text-c-text-3">Trống</p>
-                  <p className="text-[12px] text-c-text-3 m-0">khách hiện tại</p>
-                </>
-              ) : (
-                <div className="flex flex-col gap-2.5 mt-1">
-                  {stats.currentServing.map((p) => (
-                    <div key={p.id} className="flex items-center gap-2.5">
-                      <span className="live-dot flex-shrink-0" />
-                      <div className="min-w-0">
-                        <p className="m-0 text-[14px] md:text-[15px] font-semibold text-c-green leading-tight truncate">{p.name}</p>
-                        <p className="m-0 text-[11px] text-c-text-3 leading-tight">{p.barber_name}</p>
-                      </div>
-                    </div>
-                  ))}
+            {loading ? (
+              <>
+                <StatSkeleton />
+                <StatSkeleton />
+                <StatSkeleton />
+              </>
+            ) : (
+              <>
+                <div className="bg-bg-2 border border-border rounded-[var(--r-xl)] px-5 md:px-7 py-6 md:py-8 hover:shadow-[var(--shadow-md)] hover:border-border-2 transition-all">
+                  <p className="label mb-3 md:mb-4">Đang chờ</p>
+                  <p className="font-serif text-[48px] md:text-[56px] leading-none m-0 mb-1.5 text-c-text">{stats?.waitingCount ?? 0}</p>
+                  <p className="text-[12px] text-c-text-3 m-0">người</p>
                 </div>
-              )}
-            </div>
+
+                <div className="bg-bg-2 border border-border rounded-[var(--r-xl)] px-5 md:px-7 py-6 md:py-8 hover:shadow-[var(--shadow-md)] hover:border-border-2 transition-all">
+                  <p className="label mb-3 md:mb-4">Thời gian chờ</p>
+                  <p className="font-serif text-[32px] md:text-[40px] leading-none m-0 mb-1.5 text-c-text">{stats?.waitingCount === 0 ? "0 phút" : formatWaitTime(stats?.estimatedWaitMinutes ?? 0)}</p>
+                  <p className="text-[12px] text-c-text-3 m-0">{stats?.waitingCount === 0 ? "✨ Đến ngay — phục vụ tức thì!" : "ước tính"}</p>
+                </div>
+
+                <div className="bg-bg-2 border border-border rounded-[var(--r-xl)] px-5 md:px-7 py-6 md:py-8 hover:shadow-[var(--shadow-md)] hover:border-border-2 transition-all">
+                  <p className="label mb-3 md:mb-4">Đang phục vụ</p>
+                  {!stats?.currentServing?.length ? (
+                    <>
+                      <p className="font-serif text-[32px] md:text-[40px] leading-none m-0 mb-1.5 text-c-text-3">Trống</p>
+                      <p className="text-[12px] text-c-text-3 m-0">khách hiện tại</p>
+                    </>
+                  ) : (
+                    <div className="flex flex-col gap-2.5 mt-1">
+                      {stats.currentServing.map((p) => (
+                        <div key={p.id} className="flex items-center gap-2.5">
+                          <span className="live-dot flex-shrink-0" />
+                          <div className="min-w-0">
+                            <p className="m-0 text-[14px] md:text-[15px] font-semibold text-c-green leading-tight truncate">{p.name}</p>
+                            <p className="m-0 text-[11px] text-c-text-3 leading-tight">{p.barber_name}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="text-center">
@@ -161,8 +236,7 @@ export default function Home() {
             {(services.length ? services.slice(0, 4) : SERVICES_FALLBACK).map((sv) => (
               <div
                 key={sv.name}
-                className="bg-white border border-border rounded-[var(--r-xl)] p-5 md:p-7 text-center
-                hover:shadow-[var(--shadow-md)] hover:border-border-2 hover:-translate-y-0.5 transition-all"
+                className="bg-white border border-border rounded-[var(--r-xl)] p-5 md:p-7 text-center hover:shadow-[var(--shadow-md)] hover:border-border-2 hover:-translate-y-0.5 transition-all"
               >
                 <div className="text-3xl md:text-4xl mb-3 md:mb-4">{sv.icon}</div>
                 <h3 className="font-serif text-[15px] md:text-[17px] text-c-text m-0 mb-2 leading-tight">{sv.name}</h3>
@@ -174,10 +248,52 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── GALLERY + CTA ── */}
-      <section className="py-12 md:py-20 px-4 md:px-8 bg-white">
+      {/* ── SẢN PHẨM TẠI SHOP ── */}
+      <section className="py-12 md:py-20 px-4 md:px-8 bg-white border-b border-border">
         <div className="max-w-6xl mx-auto">
-          {/* Gallery - simplified for mobile */}
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-10 md:mb-14">
+            <div>
+              <p className="label mb-3">Sản phẩm tại cửa hàng</p>
+              <h2 className="font-serif text-[28px] md:text-[36px] text-c-text m-0 mb-2">Có sẵn tại shop</h2>
+              <p className="text-[13px] text-c-text-3 m-0">Các sản phẩm chăm sóc tóc & râu chúng tôi đang dùng và phân phối tại tiệm</p>
+            </div>
+            <span className="inline-flex items-center gap-2 text-[11px] font-semibold text-c-text-3 border border-border rounded-full px-3 py-1.5 bg-bg-2 self-start md:self-auto">
+              🛍️ Chỉ bán tại cửa hàng
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+            {PRODUCTS.map((p) => (
+              <div
+                key={p.name}
+                className="bg-white border border-border rounded-[var(--r-xl)] overflow-hidden hover:shadow-[var(--shadow-md)] hover:border-border-2 hover:-translate-y-0.5 transition-all group"
+              >
+                {/* Ảnh */}
+                <div className="relative overflow-hidden" style={{ aspectRatio: "1/1", background: "#f8f8f8" }}>
+                  <img src={p.img} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <span className="absolute top-2.5 left-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ color: p.tagColor, background: p.tagBg }}>
+                    {p.tag}
+                  </span>
+                </div>
+
+                {/* Info */}
+                <div className="p-3 md:p-4">
+                  <p className="text-[9px] md:text-[10px] font-semibold text-c-text-3 uppercase tracking-wider m-0 mb-0.5">{p.brand}</p>
+                  <h3 className="font-serif text-[14px] md:text-[15px] text-c-text m-0 mb-1.5 leading-tight">{p.name}</h3>
+                  <p className="text-[11px] md:text-[12px] text-c-text-2 m-0 leading-relaxed line-clamp-2">{p.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center text-[12px] text-c-text-3 mt-6 md:mt-8">Ghé trực tiếp để được tư vấn sản phẩm phù hợp với kiểu tóc của bạn ✂️</p>
+        </div>
+      </section>
+
+      {/* ── GALLERY + CTA ── */}
+      <section className="py-12 md:py-20 px-4 md:px-8 bg-bg-2">
+        <div className="max-w-6xl mx-auto">
+          {/* Gallery desktop */}
           <div className="hidden md:grid gap-2 mb-16" style={{ gridTemplateColumns: "2fr 1fr 1fr", gridTemplateRows: "220px 220px" }}>
             {[
               { img: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80", gridRow: "1 / 3" },
@@ -189,14 +305,19 @@ export default function Home() {
               <div
                 key={i}
                 className="rounded-[var(--r-lg)] bg-cover bg-center overflow-hidden cursor-pointer border border-border"
-                style={{ backgroundImage: `url(${item.img})`, gridRow: item.gridRow, filter: "grayscale(25%)", transition: "filter 0.35s" }}
+                style={{
+                  backgroundImage: `url(${item.img})`,
+                  gridRow: item.gridRow,
+                  filter: "grayscale(25%)",
+                  transition: "filter 0.35s",
+                }}
                 onMouseOver={(e) => (e.currentTarget.style.filter = "grayscale(0%)")}
                 onMouseOut={(e) => (e.currentTarget.style.filter = "grayscale(25%)")}
               />
             ))}
           </div>
 
-          {/* Mobile gallery - 2 col grid */}
+          {/* Gallery mobile */}
           <div className="grid grid-cols-2 gap-2 mb-10 md:hidden">
             {[
               "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&q=80",
@@ -220,6 +341,19 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <style>{`
+        @keyframes kenBurns {
+          from { transform: scale(1); }
+          to   { transform: scale(1.08); }
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </div>
   );
 }
