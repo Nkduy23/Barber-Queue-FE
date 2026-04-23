@@ -7,9 +7,12 @@ const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Dashboard() {
   const [viewDate, setViewDate] = useState(() => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }));
-  const { queue, loading } = useQueue(viewDate);
+  const { queue: rawQueue, loading } = useQueue(viewDate);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
+  // Optimistic overrides: id → partial patch to apply on top of server data
+  const [overrides, setOverrides] = useState({});
 
   const [selectedBarberId, setSelectedBarberId] = useState(() => (localStorage.getItem("barber_id") ? Number(localStorage.getItem("barber_id")) : null));
   const { barbers, refetchBarbers } = useBarbers(token);
@@ -25,6 +28,14 @@ export default function Dashboard() {
   useEffect(() => {
     if (!token) navigate("/admin/login");
   }, [token, navigate]);
+
+  // When server data refreshes, clear overrides that have been reconciled
+  useEffect(() => {
+    setOverrides({});
+  }, [rawQueue]);
+
+  // Apply optimistic overrides on top of server queue
+  const queue = rawQueue.map((entry) => (overrides[entry.id] ? { ...entry, ...overrides[entry.id] } : entry));
 
   const auth = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
@@ -80,19 +91,53 @@ export default function Dashboard() {
       showToast("Vui lòng chọn tên thợ trước", "err");
       return;
     }
+    // Optimistic update: immediately move to serving
+    const barber = barbers.find((b) => b.id === selectedBarberId);
+    setOverrides((prev) => ({
+      ...prev,
+      [queueId]: { status: "serving", barber_id: selectedBarberId, barber_name: barber?.name ?? "" },
+    }));
     const data = await call(`/api/queue/${queueId}/start`, "PATCH", { barber_id: selectedBarberId });
-    if (data) showToast(`✂ Bắt đầu: ${name}`);
+    if (data) {
+      showToast(`✂ Bắt đầu: ${name}`);
+    } else {
+      // Revert on error
+      setOverrides((prev) => {
+        const next = { ...prev };
+        delete next[queueId];
+        return next;
+      });
+    }
   };
 
   const handleDone = async (queueId, name) => {
     const body = selectedBarberId ? { barber_id: selectedBarberId } : {};
+    // Optimistic: mark as done
+    setOverrides((prev) => ({ ...prev, [queueId]: { status: "done" } }));
     const data = await call(`/api/queue/${queueId}/done`, "PATCH", body);
-    if (data) showToast(data.next ? `✓ Xong: ${name} → Tiếp: ${data.next.name}` : `✓ Xong: ${name}`);
+    if (data) {
+      showToast(data.next ? `✓ Xong: ${name} → Tiếp: ${data.next.name}` : `✓ Xong: ${name}`);
+    } else {
+      setOverrides((prev) => {
+        const next = { ...prev };
+        delete next[queueId];
+        return next;
+      });
+    }
   };
 
   const handleSkip = async (queueId, name) => {
+    setOverrides((prev) => ({ ...prev, [queueId]: { status: "skipped" } }));
     const data = await call(`/api/queue/${queueId}/skip`);
-    if (data) showToast(`⏭ Skip: ${name}`);
+    if (data) {
+      showToast(`⏭ Skip: ${name}`);
+    } else {
+      setOverrides((prev) => {
+        const next = { ...prev };
+        delete next[queueId];
+        return next;
+      });
+    }
   };
 
   const handleToggleBarber = async (barberId) => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toVNDate, calcETAFromScheduled, todayVN } from "../utils/timeHelper";
 import { useSlots, useServices } from "../hooks/useQueue";
@@ -10,7 +10,7 @@ function validatePhone(digits) {
   if (!digits) return "";
   if (digits.length < 9) return "Số điện thoại quá ngắn";
   if (digits.length > 10) return "Số điện thoại quá dài";
-  if (!/^0[3-9]\d{8}$/.test(digits)) return "Số không hợp lệ (VD: 0815 934 934)";
+  if (!/^0[3-9]\d{8}$/.test(digits)) return "Số không hợp lệ (VD: 0999 999 999)";
   return "";
 }
 
@@ -78,6 +78,8 @@ export default function Booking() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [selectedBarber, setSelectedBarber] = useState(null);
+  const [barbers, setBarbers] = useState([]);
 
   const { services, loadingServices } = useServices();
 
@@ -122,6 +124,7 @@ export default function Booking() {
           booking_date: selectedDate,
           service_ids: selectedServiceIds,
           note,
+          barber_id: selectedBarber,
         }),
       });
       const data = await res.json();
@@ -141,6 +144,12 @@ export default function Booking() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetch(`${API}/api/queue/barbers`)
+      .then((r) => r.json())
+      .then(setBarbers);
+  }, []);
 
   /* ── SUCCESS TICKET ── */
   if (ticket) {
@@ -295,6 +304,21 @@ export default function Booking() {
               {selectedServiceIds.length > 0 && !selectedSlot && <p className="mt-2 text-[11px] text-c-amber">⚡ Giờ trống được cập nhật theo tổng thời gian dịch vụ ({totalDuration} phút)</p>}
             </div>
 
+            {/* ── 1.1. CHỌN THỢ ── */}
+            <div className="mb-5">
+              <label className="block text-[12px] font-medium text-c-text-2 mb-2">
+                Chọn thợ <span className="text-c-text-3">(tuỳ chọn)</span>
+              </label>
+              <select value={selectedBarber ?? ""} onChange={(e) => setSelectedBarber(e.target.value ? Number(e.target.value) : null)} className="input-field">
+                <option value="">Bất kỳ</option>
+                {barbers.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* ── 2. NGÀY ── */}
             <div className="mb-4 md:mb-5">
               <label className="block text-[12px] md:text-[13px] font-medium text-c-text-2 mb-2">2. Chọn ngày *</label>
@@ -393,7 +417,7 @@ export default function Booking() {
               <label className="block text-[12px] md:text-[13px] font-medium text-c-text-2 mb-2">Số điện thoại *</label>
               <input
                 type="tel"
-                placeholder="0815 934 934"
+                placeholder="0999 999 999"
                 value={formatPhoneDisplay(phone)}
                 onChange={(e) => {
                   const raw = e.target.value.replace(/\D/g, "").slice(0, 10);
