@@ -2,7 +2,8 @@ import { useQueue } from "../hooks/useQueue";
 import QueueCard from "../components/QueueCard";
 import { formatWaitTime, todayVN } from "../utils/timeHelper";
 import { Link, useSearchParams } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { getBookedDates, getBookingReminder } from "../hooks/useBookingReminder";
 
 function generateDates(count = 30) {
   const result = [];
@@ -17,19 +18,20 @@ function generateDates(count = 30) {
   return result;
 }
 
-function DateTab({ date, selected, onClick }) {
+function DateTab({ date, selected, onClick, hasBooking }) {
   const isSelected = selected === date.iso;
   return (
     <button
       onClick={() => onClick(date.iso)}
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: 2,
         padding: "8px 10px",
         borderRadius: 10,
-        border: isSelected ? "1.5px solid #111" : "1.5px solid #e5e5e5",
+        border: isSelected ? "1.5px solid #111" : hasBooking ? "1.5px solid #f59e0b" : "1.5px solid #e5e5e5",
         background: isSelected ? "#111" : "#fff",
         cursor: "pointer",
         transition: "all 0.15s ease",
@@ -38,11 +40,56 @@ function DateTab({ date, selected, onClick }) {
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      <span style={{ fontFamily: "var(--font-sans)", fontSize: 10, fontWeight: 600, color: isSelected ? "rgba(255,255,255,0.6)" : "#999", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      {/* Dấu chấm vàng góc trên phải */}
+      {hasBooking && (
+        <span
+          style={{
+            position: "absolute",
+            top: -4,
+            right: -4,
+            width: 10,
+            height: 10,
+            borderRadius: "50%",
+            background: "#f59e0b",
+            border: "2px solid #fff",
+            boxShadow: "0 0 0 1px rgba(245,158,11,0.3)",
+            zIndex: 1,
+          }}
+        />
+      )}
+
+      <span
+        style={{
+          fontFamily: "var(--font-sans)",
+          fontSize: 10,
+          fontWeight: 600,
+          color: isSelected ? "rgba(255,255,255,0.6)" : "#999",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+        }}
+      >
         {date.isToday ? "Hôm nay" : date.label}
       </span>
-      <span style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 700, lineHeight: 1.1, color: isSelected ? "#fff" : "#111" }}>{date.day}</span>
-      <span style={{ fontFamily: "var(--font-sans)", fontSize: 10, color: isSelected ? "rgba(255,255,255,0.5)" : "#bbb" }}>Th{date.month}</span>
+      <span
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontSize: 20,
+          fontWeight: 700,
+          lineHeight: 1.1,
+          color: isSelected ? "#fff" : "#111",
+        }}
+      >
+        {date.day}
+      </span>
+      <span
+        style={{
+          fontFamily: "var(--font-sans)",
+          fontSize: 10,
+          color: isSelected ? "rgba(255,255,255,0.5)" : "#bbb",
+        }}
+      >
+        Th{date.month}
+      </span>
     </button>
   );
 }
@@ -64,6 +111,14 @@ export default function Queue() {
   const [searchParams, setSearchParams] = useSearchParams();
   const today = todayVN();
 
+  // Đọc booked dates từ localStorage (re-read mỗi khi tab được focus)
+  const [bookedDates, setBookedDates] = useState(() => getBookedDates());
+  useEffect(() => {
+    const refresh = () => setBookedDates(getBookedDates());
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, []);
+
   const selectedDate = useMemo(() => {
     const d = searchParams.get("date");
     if (!d) return today;
@@ -77,6 +132,12 @@ export default function Queue() {
 
   const { queue, loading } = useQueue(selectedDate);
   const dates = useMemo(() => generateDates(30), []);
+
+  // Lịch hẹn của ngày đang xem — mảng (nhiều người cùng ngày)
+  const myBookings = useMemo(() => {
+    const result = getBookingReminder(selectedDate);
+    return Array.isArray(result) ? result : result ? [result] : [];
+  }, [selectedDate, bookedDates]);
 
   const isOutOfRange = useMemo(() => {
     const d = searchParams.get("date");
@@ -102,6 +163,16 @@ export default function Queue() {
     return `${weekdays[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
   };
 
+  // Tìm vị trí từng lịch trong hàng chờ: { phone: position }
+  const myPositions = useMemo(() => {
+    const map = {};
+    for (const b of myBookings) {
+      const idx = waiting.findIndex((e) => e.phone === b.phone);
+      if (idx >= 0) map[b.phone] = idx + 1;
+    }
+    return map;
+  }, [myBookings, waiting]);
+
   return (
     <div className="bg-bg-2 min-h-[80vh]">
       <div className="max-w-2xl mx-auto px-4 md:px-5 py-6 md:py-10">
@@ -119,12 +190,40 @@ export default function Queue() {
 
         {/* Date Picker */}
         <div className="bg-white border border-border rounded-[var(--r-lg)] p-4 mb-4">
-          <p className="m-0 mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-c-text-3">Chọn ngày xem lịch</p>
-          <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          <div className="flex items-center justify-between mb-2.5">
+            <p className="m-0 text-[11px] font-semibold uppercase tracking-wider text-c-text-3">Chọn ngày xem lịch</p>
+            {bookedDates.size > 0 && (
+              <span className="flex items-center gap-1 text-[10px] text-amber-600 font-medium">
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    background: "#f59e0b",
+                    display: "inline-block",
+                    flexShrink: 0,
+                  }}
+                />
+                Ngày bạn có lịch hẹn
+              </span>
+            )}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: 6,
+              overflowX: "auto",
+              paddingBottom: 4,
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
             {dates.map((date) => (
-              <DateTab key={date.iso} date={date} selected={selectedDate} onClick={handleDateSelect} />
+              <DateTab key={date.iso} date={date} selected={selectedDate} onClick={handleDateSelect} hasBooking={bookedDates.has(date.iso)} />
             ))}
           </div>
+
+          {/* Thông tin ngày đang xem */}
           {selectedDate !== today && (
             <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
               <span className="text-[12px] text-c-text font-medium">📅 {formatSelectedDate(selectedDate)}</span>
@@ -134,6 +233,32 @@ export default function Queue() {
             </div>
           )}
         </div>
+
+        {/* ── Banner lịch hẹn của tôi (hỗ trợ nhiều người cùng ngày) ── */}
+        {myBookings.length > 0 && (
+          <div className="mb-4 rounded-[var(--r-lg)] border overflow-hidden" style={{ borderColor: "#fcd34d", background: "#fffbeb" }}>
+            <div className="px-4 py-2 flex items-center gap-2" style={{ background: "#fef3c7", borderBottom: "1px solid #fcd34d" }}>
+              <span style={{ fontSize: 13 }}>🗓</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700">
+                {myBookings.length > 1 ? `${myBookings.length} lịch hẹn — ${formatSelectedDate(selectedDate)}` : `Lịch hẹn của bạn — ${formatSelectedDate(selectedDate)}`}
+              </span>
+            </div>
+            {myBookings.map((b, i) => (
+              <div key={b.phone} className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap" style={{ borderBottom: i < myBookings.length - 1 ? "1px solid #fde68a" : "none" }}>
+                <div>
+                  <p className="m-0 text-[13px] font-semibold text-c-text">{b.name}</p>
+                  <p className="m-0 text-[11px] text-c-text-3 mt-0.5">
+                    ⏰ {b.time} · ✂️ {b.services}
+                  </p>
+                  {myPositions[b.phone] && <p className="m-0 text-[11px] text-amber-700 font-semibold mt-1">📍 Vị trí #{myPositions[b.phone]} trong hàng chờ</p>}
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="m-0 text-[13px] font-bold text-amber-600">{b.totalPrice?.toLocaleString("vi-VN")}đ</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {isOutOfRange && (
           <div className="bg-amber-bg border border-amber-border rounded-[var(--r-md)] p-3 mb-4 flex gap-2.5 items-start">
@@ -146,12 +271,10 @@ export default function Queue() {
 
         {loading ? (
           <div className="flex flex-col gap-3">
-            {/* Skeleton serving */}
             <div className="bg-green-bg border border-green-border rounded-[var(--r-lg)] px-5 py-4">
               <div className="skeleton h-3 w-20 rounded mb-2" />
               <div className="skeleton h-6 w-40 rounded" />
             </div>
-            {/* Skeleton stats */}
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-white border border-border rounded-[var(--r-lg)] px-4 py-4">
                 <div className="skeleton h-3 w-24 rounded mb-2" />
@@ -162,7 +285,6 @@ export default function Queue() {
                 <div className="skeleton h-10 w-16 rounded" />
               </div>
             </div>
-            {/* Skeleton queue cards */}
             {[1, 2, 3].map((i) => (
               <QueueSkeleton key={i} />
             ))}
@@ -225,7 +347,14 @@ export default function Queue() {
               ) : (
                 <div className="flex flex-col gap-2">
                   {waiting.map((entry, i) => (
-                    <QueueCard key={entry.id} entry={entry} rank={entry.display_position ?? i + 1} queuePosition={i + 1} />
+                    <QueueCard
+                      key={entry.id}
+                      entry={entry}
+                      rank={entry.display_position ?? i + 1}
+                      queuePosition={i + 1}
+                      // highlight card nếu là lịch của mình
+                      isMyBooking={myBookings.some((b) => b.phone === entry.phone)}
+                    />
                   ))}
                 </div>
               )}

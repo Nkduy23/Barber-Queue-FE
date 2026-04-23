@@ -20,6 +20,7 @@ import History from "./pages/admin/History";
 import Settings from "./pages/admin/Settings";
 import ScrollToTop from "./components/ScrollToTop";
 import BookingReminderModal from "./components/BookingReminderModal";
+import MyBookings from "./pages/MyBookings";
 
 // Scroll progress bar component
 function ScrollProgress() {
@@ -62,6 +63,7 @@ function PublicLayout() {
           <Route path="/about" element={<About />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/queue" element={<Queue />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
         </Routes>
       </main>
       <Footer />

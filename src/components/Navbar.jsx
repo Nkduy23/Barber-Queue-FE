@@ -7,6 +7,7 @@ const links = [
   { path: "/about", label: "Giới thiệu" },
   { path: "/booking", label: "Đặt lịch" },
   { path: "/queue", label: "Hàng chờ" },
+  { path: "/my-bookings", label: "Lịch của tôi" },
 ];
 
 export default function Navbar() {
@@ -51,20 +52,25 @@ export default function Navbar() {
             <span>📺</span>
             <span>Màn hình TV</span>
           </Link>
-          {/* <Link to="/booking" className="btn-primary text-[13px]" style={{ padding: "8px 18px" }}>
-            Đặt lịch →
-          </Link> */}
         </div>
 
-        {/* Mobile: Đặt lịch button (only show when not on booking page) */}
-        <div className="flex-shrink-0 w-[100px]">
-          <Link to="/booking" className={`btn-primary text-[12px] w-full ${pathname === "/booking" ? "invisible" : ""}`} style={{ padding: "7px 12px" }}>
+        {/* Mobile right: Lịch của tôi + Đặt lịch */}
+        <div className="flex md:hidden items-center gap-2 flex-shrink-0">
+          <Link
+            to="/my-bookings"
+            className={`flex items-center justify-center w-8 h-8 rounded-full transition-all
+              ${pathname === "/my-bookings" ? "bg-c-text text-white" : "bg-bg-2 text-c-text-2 hover:bg-border"}`}
+            title="Lịch của tôi"
+          >
+            <span style={{ fontSize: 15 }}>📋</span>
+          </Link>
+          <Link to="/booking" className={`btn-primary text-[12px] ${pathname === "/booking" ? "invisible" : ""}`} style={{ padding: "7px 12px" }}>
             Đặt lịch →
           </Link>
         </div>
       </div>
 
-      {/* Mobile dropdown menu (kept for TV link) */}
+      {/* Mobile dropdown menu */}
       {open && (
         <div className="md:hidden border-t border-border bg-white px-5 pb-5 pt-2">
           {links.map(({ path, label }) => (

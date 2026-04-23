@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { toVNDate, calcETAFromScheduled, todayVN } from "../utils/timeHelper";
 import { useSlots, useServices } from "../hooks/useQueue";
 import { saveBookingReminder } from "../hooks/useBookingReminder";
@@ -68,8 +68,9 @@ function StepBar({ step }) {
 }
 
 export default function Booking() {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [searchParams] = useSearchParams();
+  const [name, setName] = useState(searchParams.get("prefill_name") || "");
+  const [phone, setPhone] = useState(searchParams.get("prefill_phone") || "");
   const [selectedDate, setSelectedDate] = useState(todayVN());
   const [selectedSlot, setSelectedSlot] = useState("");
   const [selectedServiceIds, setSelectedServiceIds] = useState([]);
@@ -87,16 +88,20 @@ export default function Booking() {
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
   const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
 
-  // ── Truyền totalDuration vào useSlots để BE check overlap đúng ──
-  // Khi chưa chọn dịch vụ → không truyền duration (BE dùng slot_minutes default)
   const { slots, loadingSlots, activeBarbers } = useSlots(selectedDate, totalDuration > 0 ? totalDuration : null);
+
+  // ── Scroll to top khi ticket xuất hiện ──────────────────────
+  useEffect(() => {
+    if (ticket) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [ticket]);
 
   // Step: 0 = dịch vụ, 1 = lịch hẹn, 2 = xác nhận (form)
   const step = selectedServiceIds.length === 0 ? 0 : !selectedSlot ? 1 : 2;
 
   const toggleService = (id) => {
     setSelectedServiceIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-    // Reset slot khi đổi service vì duration thay đổi → slots sẽ fetch lại
     setSelectedSlot("");
   };
 
@@ -182,7 +187,7 @@ export default function Booking() {
                 <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" style={{ strokeDasharray: 30, strokeDashoffset: 0, animation: "drawCheck 0.4s 0.4s ease-out both" }} />
               </svg>
             </div>
-            <p className="label text-white/40 m-0 mb-1">Số định danh của bạn</p>
+            <p className="label text-white/40 m-0 mb-1">Số thứ tự của bạn</p>
             <div className="font-serif leading-none text-white" style={{ fontSize: "clamp(52px,12vw,68px)", animation: "numPop 0.5s 0.3s cubic-bezier(0.16,1,0.3,1) both" }}>
               #{ticket.display_position ?? ticket.position}
             </div>
@@ -199,7 +204,7 @@ export default function Booking() {
                 { icon: "✂️", label: "Dịch vụ", value: selectedServices.map((s) => s.name).join(", ") || "—" },
                 { icon: "⏱", label: "Thời gian", value: `~${ticket.total_duration ?? totalDuration} phút` },
                 { icon: "💰", label: "Tổng tiền", value: `${totalPrice.toLocaleString("vi-VN")}đ`, accent: true },
-                { icon: "👥", label: "Người trước", value: `${ticket.peopleAhead ?? 0} người` },
+                // { icon: "👥", label: "Người trước", value: `${ticket.peopleAhead ?? 0} người` },
                 ...(eta ? [{ icon: "🎯", label: "Dự kiến xong", value: `~${eta}`, accent: true }] : []),
               ].map(({ icon, label, value, accent }, i, arr) => (
                 <div key={label} className="flex items-center gap-3 px-4 py-2.5" style={{ borderBottom: i < arr.length - 1 ? "1px solid #f0f0f0" : "none" }}>
@@ -300,7 +305,6 @@ export default function Booking() {
                 </div>
               )}
 
-              {/* Hint khi đổi service reset slot */}
               {selectedServiceIds.length > 0 && !selectedSlot && <p className="mt-2 text-[11px] text-c-amber">⚡ Giờ trống được cập nhật theo tổng thời gian dịch vụ ({totalDuration} phút)</p>}
             </div>
 

@@ -21,7 +21,37 @@ const METRICS = [
   { value: "98%", label: "Hài lòng", sub: "Đánh giá 5 sao" },
 ];
 
+// ── Thông tin địa chỉ tiệm ────────────────────────────────────
+const SHOP = {
+  name: "Tiệm Tóc Của Baw",
+  address: "123 Đường ABC, Phường XYZ, Quận 1, TP. HCM",
+  googleMapsUrl: "https://maps.google.com/?q=10.943747879372813,106.54616298358108",
+  googleMapsEmbed:
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3918.0!2d106.54616298358108!3d10.943747879372813!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zVGnhu4dtIFTDs2MgQ-G7p2EgQmF3!5e0!3m2!1svi!2svn!4v1234567890",
+  phone: "0815 934 934",
+  hours: [
+    { day: "Thứ 2 — Thứ 6", time: "08:00 — 19:00", open: true },
+    { day: "Thứ 7", time: "08:00 — 19:00", open: true },
+    { day: "Chủ nhật", time: "09:00 — 17:00", open: true },
+  ],
+  parking: "Có chỗ để xe máy miễn phí trước cửa",
+  note: "Đặt lịch trước để tránh chờ đợi",
+};
+
+function isOpenNow() {
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+  const day = now.getDay(); // 0=CN, 1-5=T2-T6, 6=T7
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const mins = h * 60 + m;
+  if (day >= 1 && day <= 6) return mins >= 8 * 60 && mins < 19 * 60;
+  if (day === 0) return mins >= 9 * 60 && mins < 17 * 60;
+  return false;
+}
+
 export default function About() {
+  const open = isOpenNow();
+
   return (
     <div>
       {/* Hero */}
@@ -94,7 +124,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* Team — redesigned cards */}
+      {/* Team */}
       <section className="py-20 px-8 bg-white border-t border-border">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
@@ -105,11 +135,8 @@ export default function About() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
             {TEAM.map((member) => (
               <div key={member.name} className="group relative overflow-hidden rounded-[var(--r-xl)] border border-border hover:shadow-[var(--shadow-lg)] hover:border-border-2 transition-all">
-                {/* Ảnh */}
                 <div className="h-64 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style={{ backgroundImage: `url(${member.img})`, filter: "grayscale(15%)" }} />
-                {/* Tag */}
                 <span className="absolute top-3 right-3 text-[10px] font-semibold bg-white/90 backdrop-blur-sm text-c-text px-2.5 py-1 rounded-full border border-border">{member.tag}</span>
-                {/* Info overlay */}
                 <div className="bg-white px-5 py-4 border-t border-border">
                   <h3 className="font-serif text-[18px] text-c-text m-0 mb-0.5">{member.name}</h3>
                   <p className="text-[12px] font-medium text-c-text-2 m-0">{member.role}</p>
@@ -121,9 +148,152 @@ export default function About() {
         </div>
       </section>
 
+      {/* ── MAP SECTION ─────────────────────────────────────────── */}
+      <section className="py-20 px-8 bg-bg-2 border-t border-border">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <p className="label mb-3">Địa chỉ</p>
+            <h2 className="font-serif text-[34px] text-c-text m-0 mb-3">{SHOP.name}</h2>
+            <div className="flex justify-center">
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  background: open ? "#dcfce7" : "#fee2e2",
+                  color: open ? "#16a34a" : "#dc2626",
+                  border: `1px solid ${open ? "#bbf7d0" : "#fecaca"}`,
+                  borderRadius: 99,
+                  padding: "2px 10px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: open ? "#16a34a" : "#dc2626", display: "inline-block" }} />
+                {open ? "Đang mở cửa" : "Đã đóng cửa"}
+              </span>
+            </div>
+          </div>
+
+          {/* Map iframe */}
+          <div className="bg-white border border-border rounded-[var(--r-xl)] overflow-hidden mb-4" style={{ height: 280, position: "relative" }}>
+            <iframe
+              src={SHOP.googleMapsEmbed}
+              width="100%"
+              height="100%"
+              style={{ border: 0, display: "block" }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Bản đồ Tiệm Tóc Của Baw"
+            />
+          </div>
+
+          {/* Action buttons */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <a
+              href={SHOP.googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 7,
+                background: "#111",
+                color: "#fff",
+                borderRadius: 12,
+                padding: "12px 0",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
+            >
+              🧭 Chỉ đường
+            </a>
+            <a
+              href={`tel:${SHOP.phone.replace(/\s/g, "")}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 7,
+                background: "#fff",
+                color: "#111",
+                border: "1.5px solid #e5e5e5",
+                borderRadius: 12,
+                padding: "12px 0",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
+            >
+              📞 Gọi điện
+            </a>
+          </div>
+
+          {/* Info card */}
+          <div className="bg-white border border-border rounded-[var(--r-xl)] overflow-hidden mb-4">
+            {/* Address */}
+            <div className="flex items-start gap-3 px-5 py-4" style={{ borderBottom: "1px solid #f0f0f0" }}>
+              <span className="text-base flex-shrink-0 mt-0.5">📍</span>
+              <div>
+                <p className="m-0 text-[11px] text-c-text-3 mb-0.5">Địa chỉ</p>
+                <p className="m-0 text-[13px] font-medium text-c-text">{SHOP.address}</p>
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div className="flex items-start gap-3 px-5 py-4" style={{ borderBottom: "1px solid #f0f0f0" }}>
+              <span className="text-base flex-shrink-0 mt-0.5">📞</span>
+              <div>
+                <p className="m-0 text-[11px] text-c-text-3 mb-0.5">Điện thoại</p>
+                <a href={`tel:${SHOP.phone.replace(/\s/g, "")}`} className="text-[13px] font-medium text-c-text" style={{ textDecoration: "none" }}>
+                  {SHOP.phone}
+                </a>
+              </div>
+            </div>
+
+            {/* Parking */}
+            <div className="flex items-start gap-3 px-5 py-4" style={{ borderBottom: "1px solid #f0f0f0" }}>
+              <span className="text-base flex-shrink-0 mt-0.5">🅿️</span>
+              <div>
+                <p className="m-0 text-[11px] text-c-text-3 mb-0.5">Bãi đỗ xe</p>
+                <p className="m-0 text-[13px] font-medium text-c-text">{SHOP.parking}</p>
+              </div>
+            </div>
+
+            {/* Note */}
+            <div className="flex items-start gap-3 px-5 py-4">
+              <span className="text-base flex-shrink-0 mt-0.5">💡</span>
+              <div>
+                <p className="m-0 text-[11px] text-c-text-3 mb-0.5">Lưu ý</p>
+                <p className="m-0 text-[13px] font-medium text-c-text">{SHOP.note}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Giờ mở cửa */}
+          <div className="bg-white border border-border rounded-[var(--r-xl)] overflow-hidden mb-5">
+            <div className="px-5 py-3.5" style={{ borderBottom: "1px solid #f0f0f0", background: "#fafafa" }}>
+              <p className="m-0 text-[11px] font-bold uppercase tracking-wider text-c-text-3">🕐 Giờ mở cửa</p>
+            </div>
+            {SHOP.hours.map(({ day, time, open: isOpen }, i) => (
+              <div key={day} className="flex items-center justify-between px-5 py-3" style={{ borderBottom: i < SHOP.hours.length - 1 ? "1px solid #f5f5f5" : "none" }}>
+                <span className="text-[13px] text-c-text">{day}</span>
+                <span className={`text-[13px] font-semibold ${isOpen ? "text-c-text" : "text-c-text-3"}`}>{isOpen ? time : "Nghỉ"}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
-      <section className="py-18 px-8 bg-bg-2 border-t border-border text-center">
-        <h2 className="font-serif text-[32px] text-c-text mb-6">Trải nghiệm ngay hôm nay</h2>
+      <section className="py-18 px-8 bg-c-text border-t border-border text-center">
+        <h2 className="font-serif text-[32px] text-white mb-6">Trải nghiệm ngay hôm nay</h2>
         <Link to="/booking" className="btn-primary">
           Đặt lịch — Miễn phí →
         </Link>
