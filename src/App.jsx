@@ -14,7 +14,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import StaffDashboard from "./pages/admin/StaffDashboard";
 import Schedules from "./pages/admin/Schedules";
-import ChangePassword from "./pages/admin/ChangePassword";
+import Account from "./pages/admin/Account";
 import RevenueStats from "./pages/admin/RevenueStats";
 import History from "./pages/admin/History";
 import Settings from "./pages/admin/Settings";
@@ -88,7 +88,7 @@ export default function App() {
           <Route path="history" element={<History />} />
           <Route path="revenue" element={<RevenueStats />} />
           <Route path="schedules" element={<Schedules />} />
-          <Route path="password" element={<ChangePassword />} />
+          <Route path="account" element={<Account />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<PublicLayout />} />

@@ -4,7 +4,6 @@ import logo from "../../assets/minhbao-removebg-preview.png";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Nav items — một số chỉ admin mới thấy
 const NAV_ITEMS = [
   {
     key: "dashboard",
@@ -85,19 +84,19 @@ const NAV_ITEMS = [
     label: "Cài đặt",
     sublabel: "Giờ & slot",
   },
-  // Đổi password — ai cũng thấy
+  // ── Đổi thành "Tài khoản" — ai cũng thấy ──
   {
-    key: "password",
-    path: "/admin/password",
+    key: "account",
+    path: "/admin/account",
     roles: ["admin", "barber"],
     icon: (
       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-        <rect x="3" y="11" width="18" height="11" rx="2" />
-        <path d="M7 11V7a5 5 0 0110 0v4" strokeLinecap="round" />
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
       </svg>
     ),
-    label: "Đổi mật khẩu",
-    sublabel: "Bảo mật tài khoản",
+    label: "Tài khoản",
+    sublabel: "Mật khẩu & quản lý",
   },
 ];
 
@@ -108,15 +107,13 @@ export default function AdminLayout() {
 
   const role = localStorage.getItem("userRole") || "barber";
   const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(role));
-  // Mobile chỉ hiển thị max 4 item quan trọng nhất
-  const mobileItems = visibleItems.filter((i) => i.key !== "password").slice(0, 4);
+  const mobileItems = visibleItems.filter((i) => i.key !== "account").slice(0, 4);
 
   const activeKey = visibleItems.find((item) => location.pathname.startsWith(item.path))?.key || visibleItems[0]?.key;
 
   const handleLogout = async () => {
     const token = localStorage.getItem("token");
     const refreshToken = localStorage.getItem("refreshToken");
-    // Gọi API logout để revoke refresh token
     if (token && refreshToken) {
       try {
         await fetch(`${API}/api/auth/logout`, {
@@ -126,11 +123,7 @@ export default function AdminLayout() {
         });
       } catch {}
     }
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("barber_id");
+    ["token", "refreshToken", "userRole", "userId", "barber_id"].forEach((k) => localStorage.removeItem(k));
     navigate("/admin/login");
   };
 
@@ -181,7 +174,6 @@ export default function AdminLayout() {
 
         {/* Bottom */}
         <div className="px-2 pb-3 flex flex-col gap-1 border-t border-border pt-3">
-          {/* Role badge */}
           {!collapsed && (
             <div className="flex items-center gap-2 px-3 py-2">
               <span

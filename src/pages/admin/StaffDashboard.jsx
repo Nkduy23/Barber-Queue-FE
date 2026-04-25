@@ -395,7 +395,7 @@ export default function StaffDashboard() {
           <div className="bg-white border border-border rounded-[var(--r-xl)] p-4">
             <p className="label mb-2 text-[10px]">Tài khoản</p>
             <button
-              onClick={() => navigate("/admin/password")}
+              onClick={() => navigate("/admin/account")}
               className="w-full text-[12px] text-c-text-2 border border-border rounded-[var(--r-md)] py-2 bg-transparent cursor-pointer hover:bg-bg-2 transition-all"
             >
               🔑 Đổi mật khẩu
